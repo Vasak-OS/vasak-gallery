@@ -72,7 +72,7 @@ pub async fn scan_media_directories(db: Arc<Database>) -> Result<ScanProgress, S
 }
 
 /// Escanea un directorio recursivamente
-async fn scan_directory(
+pub async fn scan_directory(
     dir: &Path,
     db: &Database,
     progress: &Arc<Mutex<ScanProgress>>,
@@ -80,6 +80,7 @@ async fn scan_directory(
     info!("Scanning directory: {:?}", dir);
 
     for entry in WalkDir::new(dir)
+        .follow_links(true)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.file_type().is_file())

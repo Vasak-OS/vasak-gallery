@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use once_cell::sync::Lazy;
 use std::thread;
 use tauri::Emitter;
+use base64::Engine;
 
 #[derive(Debug, Serialize, Clone)]
 pub struct ScanResponse {
@@ -74,27 +75,27 @@ pub fn scan_media(window: tauri::Window) -> Result<(), String> {
 
 /// Comando: Obtiene miniaturas de forma paginada
 #[tauri::command]
-pub fn get_thumbnails(page: i64, per_page: i64) -> Result<crate::indexer::database::PaginatedResult, String> {
+pub fn get_thumbnails(page: i64, perPage: i64) -> Result<crate::indexer::database::PaginatedResult, String> {
     let db = get_db();
-    db.get_paginated(page, per_page)
+    db.get_paginated(page, perPage)
         .map_err(|e| format!("Database error: {}", e))
 }
 
 /// Comando: Obtiene miniaturas por tipo (image/video) de forma paginada
 #[tauri::command]
 pub fn get_thumbnails_by_type(
-    media_type: String,
+    mediaType: String,
     page: i64,
-    per_page: i64,
+    perPage: i64,
 ) -> Result<crate::indexer::database::PaginatedResult, String> {
     let db = get_db();
     
     // Validar tipo
-    if !matches!(media_type.as_str(), "image" | "video") {
+    if !matches!(mediaType.as_str(), "image" | "video") {
         return Err("Invalid media_type. Must be 'image' or 'video'".to_string());
     }
     
-    db.get_by_type_paginated(&media_type, page, per_page)
+    db.get_by_type_paginated(&mediaType, page, perPage)
         .map_err(|e| format!("Database error: {}", e))
 }
 
@@ -130,3 +131,31 @@ pub fn clear_cache() -> Result<String, String> {
     
     Ok("Cache cleared successfully".to_string())
 }
+
+/// Comando: Obtiene una miniatura como data URL (base64)
+#[tauri::command]
+pub fn get_thumbnail_data(path: String) -> Result<String, String> {
+    // Validar que la ruta está dentro del directorio de miniaturas permitido
+    let thumbnails_dir = crate::indexer::thumbnail::get_thumbnails_dir()
+        .map_err(|e| format!("Cannot get thumbnails directory: {}", e))?;
+    
+    let requested_path = std::path::PathBuf::from(&path);
+    let canonical_requested = requested_path.canonicalize()
+        .map_err(|e| format!("Invalid path: {}", e))?;
+    let canonical_cache = thumbnails_dir.canonicalize()
+        .map_err(|e| format!("Invalid cache directory: {}", e))?;
+    
+    // Verificar que la ruta solicitada está dentro del directorio de cache
+    if !canonical_requested.starts_with(&canonical_cache) {
+        return Err("Access denied: path outside thumbnails directory".to_string());
+    }
+    
+    // Leer el archivo
+    let data = std::fs::read(&path)
+        .map_err(|e| format!("Failed to read thumbnail: {}", e))?;
+    
+    // Retornar como data URL base64
+    let base64_data = base64::engine::general_purpose::STANDARD.encode(&data);
+    Ok(format!("data:image/jpeg;base64,{}", base64_data))
+}
+

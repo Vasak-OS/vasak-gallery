@@ -16,9 +16,10 @@ pub fn run() {
             crate::indexer::commands::get_thumbnails_by_type,
             crate::indexer::commands::get_media_count,
             crate::indexer::commands::clear_cache,
+            crate::indexer::commands::get_thumbnail_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
-mod indexer;
+pub mod indexer;
