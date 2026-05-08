@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { convertFileSrc } from '@tauri-apps/api/core';
+import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { MediaItem } from '@/types/gallery';
 
@@ -156,11 +157,20 @@ function onVideoError(e: Event) {
 	const MEDIA_ERR: Record<number, string> = {
 		1: 'Carga abortada',
 		2: 'Error de red',
-		3: 'Error de decodificación — codec no soportado',
-		4: 'Formato no soportado por este reproductor',
+		3: 'Codec no soportado por el WebView',
+		4: 'Formato no soportado por el WebView',
 	};
 	videoError.value = MEDIA_ERR[code ?? 0] ?? 'Error desconocido al reproducir el video';
 	isPlaying.value = false;
+}
+
+async function openWithSystem() {
+	if (!props.currentItem) return;
+	try {
+		await shellOpen(props.currentItem.original_path);
+	} catch (err) {
+		console.error('Failed to open with system player:', err);
+	}
 }
 
 function seekTo(e: Event) {
@@ -377,11 +387,17 @@ const mediaSrc = computed(() =>
             v-if="videoError"
             class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center"
           >
-            <div class="rounded-2xl border border-white/10 bg-black/60 px-8 py-6 backdrop-blur-md">
-              <p class="mb-1 text-2xl">⚠️</p>
-              <p class="text-sm font-medium text-white/90">No se puede reproducir el video</p>
-              <p class="mt-1 text-xs text-white/50">{{ videoError }}</p>
-              <p class="mt-3 font-mono text-xs text-white/30 break-all max-w-sm">{{ fileName }}</p>
+            <div class="rounded-2xl border border-white/10 bg-black/60 px-8 py-6 backdrop-blur-md flex flex-col items-center gap-3">
+              <p class="text-3xl">🎬</p>
+              <p class="text-sm font-medium text-white/90">El WebView no puede reproducir este video</p>
+              <p class="text-xs text-white/50">{{ videoError }}</p>
+              <p class="font-mono text-xs text-white/30 break-all max-w-sm">{{ fileName }}</p>
+              <button
+                class="mt-1 rounded-corner border border-primary/40 bg-primary/15 px-4 py-2 text-sm font-medium text-white transition hover:border-primary/70 hover:bg-primary/25 active:scale-95"
+                @click="openWithSystem"
+              >
+                Abrir con reproductor del sistema
+              </button>
             </div>
           </div>
 
