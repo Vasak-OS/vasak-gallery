@@ -12,6 +12,7 @@ pub fn run() {
         .plugin(tauri_plugin_vicons::init())
         .invoke_handler(tauri::generate_handler![
             crate::indexer::commands::scan_media,
+            crate::indexer::commands::get_all_media,
             crate::indexer::commands::get_thumbnails,
             crate::indexer::commands::get_thumbnails_by_type,
             crate::indexer::commands::get_media_count,

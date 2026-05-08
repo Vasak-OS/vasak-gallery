@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core';
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import MediaCard from '@/components/ui/MediaCard.vue';
 import StatePanel from '@/components/ui/StatePanel.vue';
-import type { FilterType, GridState, MediaItem, MediaItemWithLoading, PaginatedResult, TimelineEntry } from '@/types/gallery';
+import type { FilterType, MediaItem, MediaItemWithLoading, TimelineEntry } from '@/types/gallery';
 
 // ─── Emits & Props ────────────────────────────────────────────────────────────
 
@@ -16,40 +16,28 @@ const emit = defineEmits<{
 }>();
 
 const props = withDefaults(defineProps<{
-	itemsPerPage?: number;
 	autoScan?: boolean;
 }>(), {
-	itemsPerPage: 40,
 	autoScan: true,
 });
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
-const state = reactive<GridState>({
-	images: [],
-	isLoading: false,
-	isScanning: false,
-	currentPage: 1,
-	totalItems: 0,
-	error: null,
-	mediaType: 'all',
-});
-
-const totalPages = computed(() => Math.max(1, Math.ceil(state.totalItems / props.itemsPerPage)));
+const images = ref<MediaItemWithLoading[]>([]);
+const isLoading = ref(false);
+const isScanning = ref(false);
+const error = ref<string | null>(null);
+const mediaType = ref<FilterType>('all');
 
 // ─── Month grouping ───────────────────────────────────────────────────────────
 
-interface MonthGroup {
-	key: string;   // "YYYY-MM"
-	label: string; // "Marzo 2024"
-	items: MediaItemWithLoading[];
-}
-
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+interface MonthGroup { key: string; label: string; items: MediaItemWithLoading[] }
 
 const groupedByMonth = computed<MonthGroup[]>(() => {
 	const map = new Map<string, MonthGroup>();
-	for (const item of state.images) {
+	for (const item of images.value) {
 		const d = new Date(item.created_at);
 		const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 		if (!map.has(key)) {
@@ -60,56 +48,50 @@ const groupedByMonth = computed<MonthGroup[]>(() => {
 	return Array.from(map.values()).sort((a, b) => b.key.localeCompare(a.key));
 });
 
+function emitTimeline() {
+	emit('timeline-updated', groupedByMonth.value.map(g => {
+		const [year, month] = g.key.split('-').map(Number);
+		return { key: g.key, year, month, count: g.items.length };
+	}));
+}
+
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-async function loadImages(page = 1, mediaType = 'all') {
-	state.isLoading = true;
-	state.error = null;
+async function loadImages(type: FilterType = mediaType.value) {
+	isLoading.value = true;
+	error.value = null;
 	try {
-		const result = (await invoke<PaginatedResult>(
-			mediaType === 'all' ? 'get_thumbnails' : 'get_thumbnails_by_type',
-			mediaType === 'all'
-				? { page, perPage: props.itemsPerPage }
-				: { mediaType, page, perPage: props.itemsPerPage }
-		));
-		state.images = result.items.map(i => ({ ...i, isLoaded: false, isError: false }));
-		state.totalItems = result.total;
-		state.currentPage = page;
-		emit('timeline-updated', groupedByMonth.value.map(g => {
-			const [year, month] = g.key.split('-').map(Number);
-			return { key: g.key, year, month, count: g.items.length };
-		}));
+		const result = await invoke<MediaItem[]>('get_all_media', {
+			mediaType: type === 'all' ? null : type,
+		});
+		images.value = result.map(i => ({ ...i, isLoaded: false, isError: false }));
+		emitTimeline();
 	} catch (err) {
-		state.error = err instanceof Error ? err.message : 'Error al cargar imágenes';
+		error.value = err instanceof Error ? err.message : 'Error al cargar imágenes';
 	} finally {
-		state.isLoading = false;
+		isLoading.value = false;
 	}
 }
 
 async function scanMedia() {
-	state.isScanning = true;
+	isScanning.value = true;
 	emit('scan-started');
 	try {
 		await invoke('scan_media');
-		await new Promise(r => setTimeout(r, 500));
-		await loadImages(1, state.mediaType);
-		emit('scan-completed', { total: state.totalItems, errors: 0 });
+		// Esperar a que el evento scan_completed llegue — poll simple
+		await new Promise(r => setTimeout(r, 800));
+		await loadImages();
+		emit('scan-completed', { total: images.value.length, errors: 0 });
 	} catch (err) {
 		console.error('Scan error:', err);
 	} finally {
-		state.isScanning = false;
+		isScanning.value = false;
 	}
 }
 
-function filterByType(mediaType: string) {
-	state.mediaType = mediaType as FilterType;
-	loadImages(1, mediaType);
-}
-
-function loadMore() {
-	if (state.currentPage < totalPages.value) {
-		loadImages(state.currentPage + 1, state.mediaType);
-	}
+function filterByType(type: string) {
+	mediaType.value = type as FilterType;
+	loadImages(type as FilterType);
 }
 
 function scrollToMonth(key: string) {
@@ -118,30 +100,29 @@ function scrollToMonth(key: string) {
 
 onMounted(() => props.autoScan ? scanMedia() : loadImages());
 
-defineExpose({ loadImages, scanMedia, filterByType, loadMore, scrollToMonth });
+defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
 </script>
 
 <template>
   <div>
 
-    <StatePanel v-if="state.isLoading" type="loading" message="Cargando imágenes..." />
+    <StatePanel v-if="isLoading" type="loading" message="Cargando imágenes..." />
 
-    <StatePanel v-else-if="state.error" type="error" :message="state.error">
+    <StatePanel v-else-if="error" type="error" :message="error">
       <template #action>
-        <AppButton @click="loadImages(1, state.mediaType)">Reintentar</AppButton>
+        <AppButton @click="loadImages()">Reintentar</AppButton>
       </template>
     </StatePanel>
 
-    <StatePanel v-else-if="state.images.length === 0" type="empty" message="No hay imágenes o videos disponibles">
+    <StatePanel v-else-if="images.length === 0" type="empty" message="No hay imágenes o videos disponibles">
       <template #action>
-        <AppButton v-if="!state.isScanning" variant="primary" @click="scanMedia">
+        <AppButton v-if="!isScanning" variant="primary" @click="scanMedia">
           Escanear ahora
         </AppButton>
       </template>
     </StatePanel>
 
     <template v-else>
-      <!-- Month sections -->
       <section
         v-for="group in groupedByMonth"
         :key="group.key"
@@ -164,26 +145,15 @@ defineExpose({ loadImages, scanMedia, filterByType, loadMore, scrollToMonth });
             v-for="item in group.items"
             :key="item.id"
             :item="item"
-            @click="emit('image-clicked', { item, items: state.images })"
+            @click="emit('image-clicked', { item, items: images })"
           />
         </div>
       </section>
 
-      <!-- Pagination -->
-      <div class="m-3 flex items-center justify-center gap-4 rounded-corner border border-ui-border bg-ui-surface/50 px-4 py-3 text-sm">
-        <p class="text-tx-muted">
-          Página {{ state.currentPage }} / {{ totalPages }}
-          <span class="opacity-50">· {{ state.totalItems }} elementos</span>
-        </p>
-        <AppButton
-          v-if="state.currentPage < totalPages"
-          variant="primary"
-          :disabled="state.isLoading"
-          @click="loadMore"
-        >
-          Cargar más
-        </AppButton>
-      </div>
+      <!-- Total count -->
+      <p class="px-4 py-3 text-center text-xs text-tx-muted">
+        {{ images.length }} elementos
+      </p>
     </template>
 
   </div>

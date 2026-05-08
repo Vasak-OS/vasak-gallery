@@ -73,6 +73,14 @@ pub fn scan_media(window: tauri::Window) -> Result<(), String> {
     Ok(())
 }
 
+/// Comando: Obtiene todos los elementos sin paginación, ordenados por fecha
+#[tauri::command]
+pub fn get_all_media(media_type: Option<String>) -> Result<Vec<crate::indexer::database::MediaItem>, String> {
+    let db = get_db();
+    db.get_all(media_type.as_deref())
+        .map_err(|e| format!("Database error: {}", e))
+}
+
 /// Comando: Obtiene miniaturas de forma paginada
 #[tauri::command]
 pub fn get_thumbnails(page: i64, perPage: i64) -> Result<crate::indexer::database::PaginatedResult, String> {

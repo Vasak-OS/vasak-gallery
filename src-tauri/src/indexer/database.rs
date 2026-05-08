@@ -110,6 +110,40 @@ impl Database {
         ).optional()
     }
 
+    /// Obtiene todos los elementos sin paginación, ordenados por fecha de archivo
+    pub fn get_all(&self, media_type: Option<&str>) -> SqliteResult<Vec<MediaItem>> {
+        let mut stmt = match media_type {
+            Some(mt) => {
+                let mut s = self.conn.prepare(
+                    "SELECT id, original_path, thumbnail_path, media_type, created_at, file_size
+                     FROM media_items WHERE media_type = ?1 ORDER BY created_at DESC"
+                )?;
+                let items = s.query_map([mt], |row| Ok(MediaItem {
+                    id: row.get(0)?,
+                    original_path: row.get(1)?,
+                    thumbnail_path: row.get(2)?,
+                    media_type: row.get(3)?,
+                    created_at: row.get(4)?,
+                    file_size: row.get(5)?,
+                }))?.collect::<Result<Vec<_>, _>>()?;
+                return Ok(items);
+            }
+            None => self.conn.prepare(
+                "SELECT id, original_path, thumbnail_path, media_type, created_at, file_size
+                 FROM media_items ORDER BY created_at DESC"
+            )?,
+        };
+        let items = stmt.query_map([], |row| Ok(MediaItem {
+            id: row.get(0)?,
+            original_path: row.get(1)?,
+            thumbnail_path: row.get(2)?,
+            media_type: row.get(3)?,
+            created_at: row.get(4)?,
+            file_size: row.get(5)?,
+        }))?.collect::<Result<Vec<_>, _>>()?;
+        Ok(items)
+    }
+
     /// Obtiene todos los elementos con paginación
     pub fn get_paginated(&self, page: i64, per_page: i64) -> SqliteResult<PaginatedResult> {
         let offset = (page - 1) * per_page;
