@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import Lightbox from '@/components/Lightbox.vue';
 import ImageGrid from '@/components/ImageGrid.vue';
-import type { LightboxState, MediaItem } from '@/types/gallery';
+import Lightbox from '@/components/Lightbox.vue';
+import TimelineSidebar from '@/components/TimelineSidebar.vue';
+import type { LightboxState, MediaItem, TimelineEntry } from '@/types/gallery';
 
 // ─── Lightbox ─────────────────────────────────────────────────────────────────
 
@@ -11,8 +12,6 @@ const lightbox = ref<LightboxState>({
 	currentItem: null,
 	items: [],
 });
-
-const gridRef = ref();
 
 function handleImageClicked(payload: { item: MediaItem; items: MediaItem[] }) {
 	lightbox.value.currentItem = payload.item;
@@ -28,7 +27,25 @@ function handleLightboxNavigate(item: MediaItem) {
 	lightbox.value.currentItem = item;
 }
 
+// ─── Timeline ─────────────────────────────────────────────────────────────────
+
+const timelineEntries = ref<TimelineEntry[]>([]);
+const activeTimelineKey = ref<string | null>(null);
+
+function handleTimelineUpdated(entries: TimelineEntry[]) {
+	timelineEntries.value = entries;
+	activeTimelineKey.value = entries[0]?.key ?? null;
+}
+
+function handleTimelineJump(key: string) {
+	activeTimelineKey.value = key;
+	gridRef.value?.scrollToMonth(key, scrollRef.value);
+}
+
 // ─── Grid controls ────────────────────────────────────────────────────────────
+
+const gridRef = ref();
+const scrollRef = ref<HTMLElement | null>(null);
 
 async function handleManualScan() {
 	await gridRef.value?.scanMedia();
@@ -48,32 +65,58 @@ function handleScanCompleted(payload: { total: number; errors: number }) {
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col text-white">
-    <header class="px-4 py-4 sm:px-6">
-      <div class="mx-auto flex flex-wrap w-full justify-between lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.25em]">Vasak Gallery</p>
-          <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Galeria</h1>
-        </div>
+  <div class="gallery-view">
 
+    <!-- ── Header ── -->
+    <header class="gallery-header shrink-0 px-4 py-3 sm:px-6">
+      <div class="flex w-full flex-wrap items-center justify-between gap-2">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.25em] text-tx-muted">Vasak Gallery</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-tx-main sm:text-3xl">Galería</h1>
+        </div>
         <div class="flex flex-wrap gap-2">
-          <button class="rounded-corner border border-ui-border bg-ui-surface/80 px-4 py-2 text-sm font-medium transition hover:border-secondary hover:bg-primary/15" @click="handleManualScan" title="Escanear directorios del sistema">🔄 Escanear</button>
-          <button class="rounded-corner border border-ui-border bg-ui-surface/80 px-4 py-2 text-sm font-medium transition hover:border-secondary hover:bg-primary/15" @click="showAll" title="Mostrar todas las imágenes y videos">📋 Todo</button>
-          <button class="rounded-corner border border-ui-border bg-ui-surface/80 px-4 py-2 text-sm font-medium transition hover:border-secondary hover:bg-primary/15" @click="showOnlyImages" title="Mostrar solo imágenes">🖼️ Imágenes</button>
-          <button class="rounded-corner border border-ui-border bg-ui-surface/80 px-4 py-2 text-sm font-medium transition hover:border-secondary hover:bg-primary/15" @click="showOnlyVideos" title="Mostrar solo videos">🎬 Videos</button>
+          <button
+            class="rounded-corner border border-ui-border bg-ui-surface/80 px-3 py-1.5 text-sm font-medium transition hover:border-secondary hover:bg-primary/15"
+            title="Escanear directorios del sistema"
+            @click="handleManualScan"
+          >🔄 Escanear</button>
+          <button
+            class="rounded-corner border border-ui-border bg-ui-surface/80 px-3 py-1.5 text-sm font-medium transition hover:border-secondary hover:bg-primary/15"
+            @click="showAll"
+          >📋 Todo</button>
+          <button
+            class="rounded-corner border border-ui-border bg-ui-surface/80 px-3 py-1.5 text-sm font-medium transition hover:border-secondary hover:bg-primary/15"
+            @click="showOnlyImages"
+          >🖼️ Imágenes</button>
+          <button
+            class="rounded-corner border border-ui-border bg-ui-surface/80 px-3 py-1.5 text-sm font-medium transition hover:border-secondary hover:bg-primary/15"
+            @click="showOnlyVideos"
+          >🎬 Videos</button>
         </div>
       </div>
     </header>
 
-    <main class="min-h-0 flex-1 overflow-auto p-2 sm:p-3">
-      <ImageGrid
-        ref="gridRef"
-        :auto-scan="true"
-        @image-clicked="handleImageClicked"
-        @scan-started="handleScanStarted"
-        @scan-completed="handleScanCompleted"
+    <!-- ── Body: sidebar + grid ── -->
+    <div class="gallery-body flex overflow-hidden">
+
+      <TimelineSidebar
+        :entries="timelineEntries"
+        :active-key="activeTimelineKey"
+        @jump="handleTimelineJump"
       />
-    </main>
+
+      <main ref="scrollRef" class="flex-1 overflow-y-auto">
+        <ImageGrid
+          ref="gridRef"
+          :auto-scan="true"
+          @image-clicked="handleImageClicked"
+          @scan-started="handleScanStarted"
+          @scan-completed="handleScanCompleted"
+          @timeline-updated="handleTimelineUpdated"
+        />
+      </main>
+
+    </div>
 
     <Lightbox
       :is-open="lightbox.isOpen"
@@ -84,3 +127,24 @@ function handleScanCompleted(payload: { total: number; errors: number }) {
     />
   </div>
 </template>
+
+<style scoped>
+.gallery-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.gallery-header {
+  flex-shrink: 0;
+}
+
+.gallery-body {
+  /* Ocupa todo el espacio restante después del header */
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+</style>

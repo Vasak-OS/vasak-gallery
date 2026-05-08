@@ -123,12 +123,21 @@ pub async fn scan_directory(
                     .map(|m| m.len() as i64)
                     .unwrap_or(0);
 
+                // Usar la fecha de modificación real del archivo
+                let created_at = std::fs::metadata(path)
+                    .and_then(|m| m.modified())
+                    .map(|t| {
+                        let dt: chrono::DateTime<Local> = t.into();
+                        dt.format("%Y-%m-%d %H:%M:%S").to_string()
+                    })
+                    .unwrap_or_else(|_| Local::now().format("%Y-%m-%d %H:%M:%S").to_string());
+
                 let item = MediaItem {
-                    id: 0, // SQLite genera el ID
+                    id: 0,
                     original_path: path.to_string_lossy().to_string(),
                     thumbnail_path: thumbnail_path.to_string_lossy().to_string(),
                     media_type: media_type.to_string(),
-                    created_at: Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+                    created_at,
                     file_size,
                 };
 

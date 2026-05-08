@@ -107,3 +107,16 @@ export interface LightboxState {
 	currentItem: MediaItem | null;
 	items: MediaItem[];
 }
+
+// ─── Timeline ─────────────────────────────────────────────────────────────────
+
+/**
+ * Entrada de la línea de tiempo (un mes con su conteo)
+ * key = "YYYY-MM" — usado como anchor id en el DOM
+ */
+export interface TimelineEntry {
+	key: string;   // e.g. "2024-03"
+	year: number;
+	month: number;
+	count: number;
+}

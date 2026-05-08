@@ -40,7 +40,7 @@ onMounted(async () => {
 </script>
 <template>
   <div
-    class="h-screen w-screen bg-ui-bg/80 rounded-corner-window flex flex-col border border-ui-border overflow-auto">
+    class="h-screen w-screen bg-ui-bg/80 rounded-corner-window flex flex-col border border-ui-border overflow-hidden">
     <TopBarComponent>
       <img :src="appIcon" alt="Logo" class="h-6 w-6" />
       <span class="font-bold">Gallery</span>
