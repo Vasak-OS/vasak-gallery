@@ -130,7 +130,7 @@ defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
         class="scroll-mt-2"
       >
         <!-- Month header -->
-        <div class="sticky top-0 z-10 flex items-center gap-3 bg-ui-bg/90 px-3 py-2 backdrop-blur-md">
+        <div class="sticky top-0 z-10 flex items-center gap-3 bg-ui-bg/80 rounded-corner px-3 py-2 backdrop-blur-md">
           <span class="h-px flex-1 bg-ui-border" />
           <h2 class="text-xs font-semibold uppercase tracking-widest text-tx-muted">{{ group.label }}</h2>
           <span class="rounded-full border border-ui-border bg-ui-surface px-2 py-0.5 text-xs text-tx-muted">
