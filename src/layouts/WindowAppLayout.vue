@@ -46,10 +46,8 @@ onMounted(async () => {
       <span class="font-bold">Gallery</span>
       <span></span>
     </TopBarComponent>
-    <div class="flex-1 flex min-h-0 p-1">
-      <RouterView v-slot="{ Component }">
-        <component :is="Component" class="h-full w-full" />
-      </RouterView>
+    <div class="flex min-h-0 flex-1 p-1">
+      <RouterView class="min-h-0 flex-1" />
     </div>
   </div>
 </template>

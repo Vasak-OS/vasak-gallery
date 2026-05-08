@@ -6,15 +6,10 @@ import Lightbox from '@/components/Lightbox.vue';
 import TimelineSidebar from '@/components/TimelineSidebar.vue';
 import type { LightboxState, MediaItem, TimelineEntry } from '@/types/gallery';
 
-// ─── Lightbox ─────────────────────────────────────────────────────────────────
-
 const lightbox = ref<LightboxState>({ isOpen: false, currentItem: null, items: [] });
-
 function openLightbox(payload: { item: MediaItem; items: MediaItem[] }) {
 	lightbox.value = { isOpen: true, currentItem: payload.item, items: payload.items };
 }
-
-// ─── Timeline ─────────────────────────────────────────────────────────────────
 
 const timelineEntries = ref<TimelineEntry[]>([]);
 const activeTimelineKey = ref<string | null>(null);
@@ -24,7 +19,6 @@ function onTimelineUpdated(entries: TimelineEntry[]) {
 	timelineEntries.value = entries;
 	if (!activeTimelineKey.value) activeTimelineKey.value = entries[0]?.key ?? null;
 }
-
 function onTimelineJump(key: string) {
 	activeTimelineKey.value = key;
 	gridRef.value?.scrollToMonth(key);
@@ -32,10 +26,11 @@ function onTimelineJump(key: string) {
 </script>
 
 <template>
-  <div class="layout">
+  <!-- Ocupa todo el espacio que le da WindowAppLayout -->
+  <div class="flex h-full w-full flex-col overflow-hidden">
 
-    <!-- Header -->
-    <header class="layout-header border-b border-ui-border px-4 py-3">
+    <!-- Header fijo -->
+    <header class="shrink-0 border-b border-ui-border px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p class="text-xs font-semibold uppercase tracking-widest text-tx-muted">Vasak Gallery</p>
@@ -50,14 +45,15 @@ function onTimelineJump(key: string) {
       </div>
     </header>
 
-    <!-- Body -->
-    <div class="layout-body">
+    <!-- Cuerpo: sidebar + área scrolleable -->
+    <div class="flex min-h-0 flex-1">
       <TimelineSidebar
         :entries="timelineEntries"
         :active-key="activeTimelineKey"
         @jump="onTimelineJump"
       />
-      <main class="layout-scroll">
+      <!-- Este es el único scroll container -->
+      <main class="flex-1 overflow-y-auto">
         <ImageGrid
           ref="gridRef"
           :auto-scan="true"
@@ -76,31 +72,3 @@ function onTimelineJump(key: string) {
     />
   </div>
 </template>
-
-<style scoped>
-.layout {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.layout-header {
-  flex: 0 0 auto;
-}
-
-.layout-body {
-  flex: 1 1 0;
-  min-height: 0;          /* crítico: permite que el flex item se encoja */
-  display: flex;
-  overflow: hidden;
-}
-
-.layout-scroll {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow-y: auto;       /* único scroll container */
-  overflow-x: hidden;
-}
-</style>
