@@ -34,10 +34,9 @@ onUnmounted(() => {
 	}
 });
 
-onMounted(async() => {
-   appIcon.value = await getIconSource('photo');
+onMounted(async () => {
+	appIcon.value = await getIconSource('photo');
 });
-
 </script>
 <template>
   <div
