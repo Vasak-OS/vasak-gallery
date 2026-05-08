@@ -30,7 +30,7 @@ function onTimelineJump(key: string) {
   <div class="flex h-full w-full flex-col overflow-hidden">
 
     <!-- Header fijo -->
-    <header class="shrink-0 border-b border-ui-border px-4 py-3">
+    <header class="shrink-0 px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p class="text-xs font-semibold uppercase tracking-widest text-tx-muted">Vasak Gallery</p>
@@ -45,13 +45,8 @@ function onTimelineJump(key: string) {
       </div>
     </header>
 
-    <!-- Cuerpo: sidebar + área scrolleable -->
+    <!-- Cuerpo: área scrolleable + sidebar derecho -->
     <div class="flex min-h-0 flex-1">
-      <TimelineSidebar
-        :entries="timelineEntries"
-        :active-key="activeTimelineKey"
-        @jump="onTimelineJump"
-      />
       <!-- Este es el único scroll container -->
       <main class="flex-1 overflow-y-auto">
         <ImageGrid
@@ -61,6 +56,11 @@ function onTimelineJump(key: string) {
           @timeline-updated="onTimelineUpdated"
         />
       </main>
+      <TimelineSidebar
+        :entries="timelineEntries"
+        :active-key="activeTimelineKey"
+        @jump="onTimelineJump"
+      />
     </div>
 
     <Lightbox

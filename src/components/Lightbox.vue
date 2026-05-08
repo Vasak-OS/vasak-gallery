@@ -265,7 +265,7 @@ const mediaSrc = computed(() =>
     <Transition name="lightbox">
       <div
         v-if="isOpen && currentItem"
-        class="fixed inset-0 z-9999 flex items-center justify-center bg-black/95 backdrop-blur-sm"
+        class="fixed inset-0 z-9999 flex items-center justify-center bg-ui-bg/80 rounded-corner backdrop-blur-sm"
         @mousemove="currentItem.media_type === 'video' ? resetControlsTimer() : undefined"
       >
 
@@ -274,7 +274,7 @@ const mediaSrc = computed(() =>
 
         <!-- ── Close button ── -->
         <button
-          class="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/80 backdrop-blur-md transition hover:border-white/40 hover:bg-white/15 hover:text-white"
+          class="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-ui-border bg-ui-surface/80 backdrop-blur-md transition hover:border-secondary hover:bg-primary/15"
           aria-label="Cerrar"
           @click="emit('close')"
         >
