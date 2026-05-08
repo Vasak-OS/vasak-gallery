@@ -60,7 +60,7 @@ export interface ScanCompletedEvent {
  * Eventos del ImageGrid
  */
 export interface ImageGridEvents {
-	'image-clicked': (payload: { originalPath: string; mediaType: MediaType }) => void;
+	'image-clicked': (payload: { item: MediaItem; items: MediaItem[] }) => void;
 	'scan-started': () => void;
 	'scan-completed': (payload: { total: number; errors: number }) => void;
 }

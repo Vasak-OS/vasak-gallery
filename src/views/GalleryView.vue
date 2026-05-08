@@ -1,26 +1,33 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import FullscreenViewer from '@/components/FullscreenViewer.vue';
+import Lightbox from '@/components/Lightbox.vue';
 import ImageGrid from '@/components/ImageGrid.vue';
-import type { FullscreenViewerState } from '@/types/gallery';
+import type { MediaItem } from '@/types/gallery';
 
-const viewerState = reactive<FullscreenViewerState>({
-	isOpen: false,
-	originalPath: '',
-	mediaType: 'image',
-});
+// ─── Lightbox state ───────────────────────────────────────────────────────────
+
+const lightboxOpen = ref(false);
+const lightboxItem = ref<MediaItem | null>(null);
+/** Items cargados actualmente en el grid, para navegar en el lightbox */
+const gridItems = ref<MediaItem[]>([]);
 
 const gridRef = ref();
 
-function handleImageClicked(payload: { originalPath: string; mediaType: 'image' | 'video' }) {
-	viewerState.originalPath = payload.originalPath;
-	viewerState.mediaType = payload.mediaType;
-	viewerState.isOpen = true;
+function handleImageClicked(payload: { item: MediaItem; items: MediaItem[] }) {
+	lightboxItem.value = payload.item;
+	gridItems.value = payload.items;
+	lightboxOpen.value = true;
 }
 
-function handleViewerClose() {
-	viewerState.isOpen = false;
+function handleLightboxClose() {
+	lightboxOpen.value = false;
 }
+
+function handleLightboxNavigate(item: MediaItem) {
+	lightboxItem.value = item;
+}
+
+// ─── Grid controls ────────────────────────────────────────────────────────────
 
 async function handleManualScan() {
 	if (gridRef.value) {
@@ -81,11 +88,12 @@ function handleScanCompleted(payload: { total: number; errors: number }) {
       </div>
     </main>
 
-    <FullscreenViewer
-      :is-open="viewerState.isOpen"
-      :original-path="viewerState.originalPath"
-      :media-type="viewerState.mediaType"
-      @close="handleViewerClose"
+    <Lightbox
+      :is-open="lightboxOpen"
+      :current-item="lightboxItem"
+      :items="gridItems"
+      @close="handleLightboxClose"
+      @navigate="handleLightboxNavigate"
     />
   </div>
 </template>

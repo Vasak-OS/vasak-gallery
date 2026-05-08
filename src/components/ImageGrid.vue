@@ -4,7 +4,7 @@ import { computed, onMounted, reactive } from 'vue';
 import type { FilterType, GridState, MediaItem, PaginatedResult } from '@/types/gallery';
 
 const emit = defineEmits<{
-	'image-clicked': [{ originalPath: string; mediaType: 'image' | 'video' }];
+	'image-clicked': [{ item: MediaItem; items: MediaItem[] }];
 	'scan-started': [];
 	'scan-completed': [{ total: number; errors: number }];
 }>();
@@ -96,8 +96,8 @@ function filterByType(mediaType: string) {
 
 function handleImageClick(item: MediaItem) {
 	emit('image-clicked', {
-		originalPath: item.original_path,
-		mediaType: item.media_type,
+		item,
+		items: state.images,
 	});
 }
 
