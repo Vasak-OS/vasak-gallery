@@ -2,18 +2,11 @@
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import type { MediaItem } from '@/types/gallery';
+import type { LightboxProps, MediaItem } from '@/types/gallery';
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 
-interface Props {
-	isOpen: boolean;
-	currentItem: MediaItem | null;
-	/** Lista completa de items de la carpeta actual para navegar */
-	items: MediaItem[];
-}
-
-const props = defineProps<Props>();
+const props = defineProps<LightboxProps>();
 
 const emit = defineEmits<{
 	close: [];
@@ -327,7 +320,7 @@ const mediaSrc = computed(() =>
         ═════════════════════════════════════════════════════════════════════ -->
         <div
           v-if="currentItem.media_type === 'image'"
-          class="relative flex h-full w-full items-center justify-center overflow-hidden"
+          class="relative flex h-full w-full items-center justify-center overflow-auto"
           @wheel.prevent="onWheel"
           @mousedown="onMouseDown"
           @mousemove="onMouseMove"

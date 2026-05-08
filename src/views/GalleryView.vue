@@ -1,51 +1,42 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { ref } from 'vue';
 import Lightbox from '@/components/Lightbox.vue';
 import ImageGrid from '@/components/ImageGrid.vue';
-import type { MediaItem } from '@/types/gallery';
+import type { LightboxState, MediaItem } from '@/types/gallery';
 
-// ─── Lightbox state ───────────────────────────────────────────────────────────
+// ─── Lightbox ─────────────────────────────────────────────────────────────────
 
-const lightboxOpen = ref(false);
-const lightboxItem = ref<MediaItem | null>(null);
-/** Items cargados actualmente en el grid, para navegar en el lightbox */
-const gridItems = ref<MediaItem[]>([]);
+const lightbox = ref<LightboxState>({
+	isOpen: false,
+	currentItem: null,
+	items: [],
+});
 
 const gridRef = ref();
 
 function handleImageClicked(payload: { item: MediaItem; items: MediaItem[] }) {
-	lightboxItem.value = payload.item;
-	gridItems.value = payload.items;
-	lightboxOpen.value = true;
+	lightbox.value.currentItem = payload.item;
+	lightbox.value.items = payload.items;
+	lightbox.value.isOpen = true;
 }
 
 function handleLightboxClose() {
-	lightboxOpen.value = false;
+	lightbox.value.isOpen = false;
 }
 
 function handleLightboxNavigate(item: MediaItem) {
-	lightboxItem.value = item;
+	lightbox.value.currentItem = item;
 }
 
 // ─── Grid controls ────────────────────────────────────────────────────────────
 
 async function handleManualScan() {
-	if (gridRef.value) {
-		await gridRef.value.scanMedia();
-	}
+	await gridRef.value?.scanMedia();
 }
 
-function showOnlyImages() {
-	gridRef.value?.filterByType('image');
-}
-
-function showOnlyVideos() {
-	gridRef.value?.filterByType('video');
-}
-
-function showAll() {
-	gridRef.value?.filterByType('all');
-}
+function showOnlyImages() { gridRef.value?.filterByType('image'); }
+function showOnlyVideos() { gridRef.value?.filterByType('video'); }
+function showAll() { gridRef.value?.filterByType('all'); }
 
 function handleScanStarted() {
 	console.log('Escaneo iniciado');
@@ -57,7 +48,7 @@ function handleScanCompleted(payload: { total: number; errors: number }) {
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col overflow-hidden text-white">
+  <div class="flex h-full min-h-0 flex-col text-white">
     <header class="px-4 py-4 sm:px-6">
       <div class="mx-auto flex flex-wrap w-full justify-between lg:flex-row lg:items-center lg:justify-between">
         <div>
@@ -74,24 +65,20 @@ function handleScanCompleted(payload: { total: number; errors: number }) {
       </div>
     </header>
 
-    <main class="min-h-0 flex-1 overflow-hidden p-2 sm:p-3">
-      <div class="h-full min-h-0 overflow-hidden">
-        <ImageGrid
-          ref="gridRef"
-          :columns="4"
-          :items-per-page="40"
-          :auto-scan="true"
-          @image-clicked="handleImageClicked"
-          @scan-started="handleScanStarted"
-          @scan-completed="handleScanCompleted"
-        />
-      </div>
+    <main class="min-h-0 flex-1 overflow-auto p-2 sm:p-3">
+      <ImageGrid
+        ref="gridRef"
+        :auto-scan="true"
+        @image-clicked="handleImageClicked"
+        @scan-started="handleScanStarted"
+        @scan-completed="handleScanCompleted"
+      />
     </main>
 
     <Lightbox
-      :is-open="lightboxOpen"
-      :current-item="lightboxItem"
-      :items="gridItems"
+      :is-open="lightbox.isOpen"
+      :current-item="lightbox.currentItem"
+      :items="lightbox.items"
       @close="handleLightboxClose"
       @navigate="handleLightboxNavigate"
     />

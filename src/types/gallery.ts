@@ -5,6 +5,8 @@
 export type MediaType = 'image' | 'video';
 export type FilterType = 'all' | 'image' | 'video';
 
+// ─── Modelos de datos ─────────────────────────────────────────────────────────
+
 /**
  * Elemento de media desde el backend
  */
@@ -29,16 +31,15 @@ export interface PaginatedResult {
 }
 
 /**
- * Elemento de media con estado de carga
+ * Elemento de media con estado de carga (usado en el grid)
  */
 export interface MediaItemWithLoading extends MediaItem {
 	isLoaded?: boolean;
 	isError?: boolean;
 }
 
-/**
- * Estado del escaneo
- */
+// ─── Estado del escaneo ───────────────────────────────────────────────────────
+
 export interface ScanState {
 	isScanning: boolean;
 	totalFound: number;
@@ -47,36 +48,26 @@ export interface ScanState {
 	currentDirectory?: string;
 }
 
-/**
- * Respuesta de escaneo completado
- */
 export interface ScanCompletedEvent {
 	total_found: number;
 	processed: number;
 	errors: number;
 }
 
-/**
- * Eventos del ImageGrid
- */
-export interface ImageGridEvents {
-	'image-clicked': (payload: { item: MediaItem; items: MediaItem[] }) => void;
-	'scan-started': () => void;
-	'scan-completed': (payload: { total: number; errors: number }) => void;
-}
+// ─── ImageGrid ────────────────────────────────────────────────────────────────
 
-/**
- * Props del ImageGrid
- */
 export interface ImageGridProps {
 	columns?: number;
 	itemsPerPage?: number;
 	autoScan?: boolean;
 }
 
-/**
- * Métodos públicos del ImageGrid
- */
+export interface ImageGridEvents {
+	'image-clicked': (payload: { item: MediaItem; items: MediaItem[] }) => void;
+	'scan-started': () => void;
+	'scan-completed': (payload: { total: number; errors: number }) => void;
+}
+
 export interface ImageGridMethods {
 	loadImages(page: number, mediaType: string): Promise<void>;
 	scanMedia(): Promise<void>;
@@ -85,34 +76,7 @@ export interface ImageGridMethods {
 	loadMore(): void;
 }
 
-/**
- * Estado del visor fullscreen
- */
-export interface FullscreenViewerState {
-	isOpen: boolean;
-	originalPath: string;
-	mediaType: MediaType;
-}
-
-/**
- * Props del FullscreenViewer
- */
-export interface FullscreenViewerProps {
-	originalPath: string;
-	mediaType: MediaType;
-	isOpen: boolean;
-}
-
-/**
- * Eventos del FullscreenViewer
- */
-export interface FullscreenViewerEvents {
-	close: () => void;
-}
-
-/**
- * Estado interno del grid
- */
+/** Estado interno del grid */
 export interface GridState {
 	images: MediaItemWithLoading[];
 	isLoading: boolean;
@@ -121,4 +85,25 @@ export interface GridState {
 	totalItems: number;
 	error: string | null;
 	mediaType: FilterType;
+}
+
+// ─── Lightbox ─────────────────────────────────────────────────────────────────
+
+export interface LightboxProps {
+	isOpen: boolean;
+	currentItem: MediaItem | null;
+	/** Lista completa de items para navegar con ← → */
+	items: MediaItem[];
+}
+
+export interface LightboxEvents {
+	close: () => void;
+	navigate: (item: MediaItem) => void;
+}
+
+/** Estado del lightbox en el componente padre */
+export interface LightboxState {
+	isOpen: boolean;
+	currentItem: MediaItem | null;
+	items: MediaItem[];
 }

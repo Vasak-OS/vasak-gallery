@@ -40,13 +40,13 @@ onMounted(async () => {
 </script>
 <template>
   <div
-    class="h-screen w-screen bg-ui-bg/80 rounded-corner-window flex flex-col border border-ui-border overflow-hidden">
+    class="h-screen w-screen bg-ui-bg/80 rounded-corner-window flex flex-col border border-ui-border overflow-auto">
     <TopBarComponent>
       <img :src="appIcon" alt="Logo" class="h-6 w-6" />
       <span class="font-bold">Gallery</span>
       <span></span>
     </TopBarComponent>
-    <div class="flex-1 flex p-1">
+    <div class="flex-1 flex min-h-0 p-1">
       <RouterView v-slot="{ Component }">
         <component :is="Component" class="h-full w-full" />
       </RouterView>

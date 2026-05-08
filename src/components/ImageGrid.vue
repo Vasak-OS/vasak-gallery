@@ -125,13 +125,15 @@ defineExpose({
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col">
-    <div v-if="state.isLoading" class="flex min-h-0 flex-1 items-center justify-center gap-4 p-8">
+  <div class="flex flex-col">
+    <!-- Loading -->
+    <div v-if="state.isLoading" class="flex min-h-64 items-center justify-center gap-4 p-8">
       <div class="h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-white" />
       <p class="text-sm text-white/80">Cargando imágenes...</p>
     </div>
 
-    <div v-else-if="state.error" class="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
+    <!-- Error -->
+    <div v-else-if="state.error" class="flex min-h-64 flex-col items-center justify-center gap-4 p-8 text-center">
       <p class="text-sm text-red-200">Error: {{ state.error }}</p>
       <button
         class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
@@ -141,9 +143,10 @@ defineExpose({
       </button>
     </div>
 
+    <!-- Empty -->
     <div
       v-else-if="state.images.length === 0"
-      class="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 p-8 text-center"
+      class="flex min-h-64 flex-col items-center justify-center gap-4 p-8 text-center"
     >
       <p class="text-sm text-white/75">No hay imágenes o videos disponibles</p>
       <button
@@ -155,72 +158,65 @@ defineExpose({
       </button>
     </div>
 
-    <div v-else class="flex min-h-0 flex-1 flex-col overflow-hidden">
-			<div class="min-h-0 flex-1 overflow-auto">
-				<div
-					class="grid gap-2 p-2 sm:p-3"
-					:style="{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }"
-				>
-					<button
-						v-for="item in state.images"
-						:key="item.id"
-						type="button"
-						class="group cursor-pointer rounded-corner p-2 text-left transition-transform duration-200 hover:-translate-y-1"
-						@click="handleImageClick(item)"
-					>
-						<div class="relative aspect-square overflow-hidden rounded-corner border border-ui-border bg-ui-surface/80 shadow-lg shadow-black/10">
-							<img
-								:src="convertFileSrc(item.thumbnail_path)"
-								:alt="item.original_path"
-								class="h-full w-full object-cover transition-opacity duration-300"
-								:class="item.isLoaded ? 'opacity-100' : 'opacity-0'"
-								loading="lazy"
-								decoding="async"
-								@load="item.isLoaded = true"
-								@error="item.isError = true"
-							/>
+    <!-- Grid -->
+    <template v-else>
+      <div
+        class="grid gap-2 p-2 sm:p-3"
+        :style="{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }"
+      >
+        <button
+          v-for="item in state.images"
+          :key="item.id"
+          type="button"
+          class="group cursor-pointer rounded-corner p-2 text-left transition-transform duration-200 hover:-translate-y-1"
+          @click="handleImageClick(item)"
+        >
+          <div class="relative aspect-square overflow-hidden rounded-corner border border-ui-border bg-ui-surface/80 shadow-lg shadow-black/10">
+            <img
+              :src="convertFileSrc(item.thumbnail_path)"
+              :alt="item.original_path"
+              class="h-full w-full object-cover transition-opacity duration-300"
+              :class="item.isLoaded ? 'opacity-100' : 'opacity-0'"
+              loading="lazy"
+              decoding="async"
+              @load="item.isLoaded = true"
+              @error="item.isError = true"
+            />
+            <div
+              class="absolute inset-0 flex items-end justify-end bg-linear-to-t from-ui-bg/50 via-black/0 to-transparent p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            >
+              <div class="rounded-full bg-ui-bg/80 px-3 py-1 text-lg backdrop-blur-sm">
+                {{ item.media_type === 'video' ? '🎬' : '🖼️' }}
+              </div>
+            </div>
+            <div v-if="item.isError" class="absolute inset-0 flex items-center justify-center bg-black/40">
+              <span class="rounded-full border border-white/20 bg-black/40 px-3 py-1 text-xs text-white/80">Error al cargar</span>
+            </div>
+            <div v-if="!item.isLoaded && !item.isError" class="absolute inset-0 animate-pulse bg-white/10" />
+          </div>
+          <div class="mt-2 min-w-0 space-y-1 px-1">
+            <p class="truncate text-sm font-medium text-white">
+              {{ item.original_path.split('/').pop() }}
+            </p>
+            <p class="text-xs text-white/60">
+              {{ new Date(item.created_at).toLocaleDateString() }}
+            </p>
+          </div>
+        </button>
+      </div>
 
-							<div
-								class="absolute inset-0 flex items-end justify-end bg-gradient-to-t from-ui-bg/50 via-black/0 to-transparent p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-							>
-								<div class="rounded-full bg-ui-bg/80 px-3 py-1 text-lg backdrop-blur-sm">
-									{{ item.media_type === 'video' ? '🎬' : '🖼️' }}
-								</div>
-							</div>
-
-							<div v-if="item.isError" class="absolute inset-0 flex items-center justify-center bg-black/40">
-								<span class="rounded-full border border-white/20 bg-black/40 px-3 py-1 text-xs text-white/80">Error al cargar</span>
-							</div>
-
-							<div v-if="!item.isLoaded && !item.isError" class="absolute inset-0 animate-pulse bg-white/10" />
-						</div>
-
-						<div class="mt-2 min-w-0 space-y-1 px-1">
-							<p class="truncate text-sm font-medium text-white">
-								{{ item.original_path.split('/').pop() }}
-							</p>
-							<p class="text-xs text-white/60">
-								{{ new Date(item.created_at).toLocaleDateString() }}
-							</p>
-						</div>
-					</button>
-				</div>
-			</div>
-
-      <div class="flex items-center justify-center gap-4 border-t border-white/10 bg-black/20 px-4 py-4 text-sm text-white/80 backdrop-blur-md">
-        <p>
-          Página {{ state.currentPage }} de {{ totalPages }}
-          ({{ state.totalItems }} total)
-        </p>
+      <!-- Pagination footer -->
+      <div class="flex items-center justify-center gap-4 border border-ui-border bg-uyi-bg/80 px-4 py-4 text-sm backdrop-blur-md rounded-corner">
+        <p>Página {{ state.currentPage }} de {{ totalPages }} ({{ state.totalItems }} total)</p>
         <button
           v-if="state.currentPage < totalPages"
-          class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 font-medium text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
-          @click="loadMore"
+          class="rounded-corner border border-secondary bg-primary/15 px-4 py-2 font-medium transition hover:bg-secondary/20 disabled:cursor-not-allowed disabled:opacity-50"
           :disabled="state.isLoading"
+          @click="loadMore"
         >
           Cargar más
         </button>
       </div>
-    </div>
+    </template>
   </div>
 </template>
