@@ -25,9 +25,7 @@
         "enable": true,
         "scope": [
           "$CACHE/vasak-gallery/thumbnails/**",
-          "$HOME/Pictures/**",
-          "$HOME/Videos/**",
-          "$HOME/Downloads/**"
+          "$HOME/**"
         ]
       }
     }
