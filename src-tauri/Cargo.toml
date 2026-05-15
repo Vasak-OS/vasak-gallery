@@ -27,7 +27,7 @@ tauri-plugin-config-manager = "2"
 gtk = "0.18"
 # Indexación y miniaturas
 base64 = "0.22"
-rusqlite = { version = "0.31", features = ["bundled", "chrono"] }
+rusqlite = { version = "0.31" }
 image = "0.24"
 ffmpeg-sidecar = "2.5"
 walkdir = "2"
