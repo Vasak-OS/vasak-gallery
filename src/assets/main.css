@@ -142,24 +142,6 @@
   animation: circle-in 500ms;
 }
 
-body * {
-  @apply text-tx-main transition-colors duration-300;
-}
-
-.background {
-  @apply bg-ui-bg/80;
-}
-
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
-}
-
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core';
-import { computed, onMounted, ref } from 'vue';
+import { listen } from '@tauri-apps/api/event';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import MediaCard from '@/components/ui/MediaCard.vue';
 import StatePanel from '@/components/ui/StatePanel.vue';
@@ -28,6 +29,7 @@ const isLoading = ref(false);
 const isScanning = ref(false);
 const error = ref<string | null>(null);
 const mediaType = ref<FilterType>('all');
+let unlistenScan: (() => void) | null = null;
 
 // ─── Month grouping ───────────────────────────────────────────────────────────
 
@@ -43,7 +45,7 @@ const groupedByMonth = computed<MonthGroup[]>(() => {
 		if (!map.has(key)) {
 			map.set(key, { key, label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}`, items: [] });
 		}
-		map.get(key)!.items.push(item);
+		map.get(key)?.items.push(item);
 	}
 	return Array.from(map.values()).sort((a, b) => b.key.localeCompare(a.key));
 });
@@ -74,17 +76,24 @@ async function loadImages(type: FilterType = mediaType.value) {
 }
 
 async function scanMedia() {
+	if (isScanning.value) return;
 	isScanning.value = true;
 	emit('scan-started');
+
+	if (unlistenScan) {
+		unlistenScan();
+		unlistenScan = null;
+	}
+
 	try {
+		unlistenScan = await listen<{ total_found: number; processed: number; errors: number }>('scan_completed', async (event) => {
+			await loadImages();
+			emit('scan-completed', { total: event.payload.processed, errors: event.payload.errors });
+			isScanning.value = false;
+		});
 		await invoke('scan_media');
-		// Esperar a que el evento scan_completed llegue — poll simple
-		await new Promise(r => setTimeout(r, 800));
-		await loadImages();
-		emit('scan-completed', { total: images.value.length, errors: 0 });
 	} catch (err) {
 		console.error('Scan error:', err);
-	} finally {
 		isScanning.value = false;
 	}
 }
@@ -99,6 +108,10 @@ function scrollToMonth(key: string) {
 }
 
 onMounted(() => props.autoScan ? scanMedia() : loadImages());
+
+onUnmounted(() => {
+	if (unlistenScan) unlistenScan();
+});
 
 defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
 </script>
