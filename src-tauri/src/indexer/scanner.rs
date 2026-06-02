@@ -4,7 +4,7 @@ use chrono::Local;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use walkdir::WalkDir;
-use log::{info, warn};
+use log::info;
 
 #[derive(Debug, Clone)]
 pub struct ScanProgress {
@@ -130,7 +130,7 @@ pub async fn scan_directory(
                 };
 
                 if let Err(e) = db.insert_or_update_media(&item) {
-                    warn!("Error inserting media item: {}", e);
+                    info!("Error inserting media item: {}", e);
                     {
                         let mut p = progress.lock().unwrap();
                         p.errors += 1;
@@ -143,7 +143,7 @@ pub async fn scan_directory(
                 }
             }
             Err(e) => {
-                warn!("Error generating thumbnail for {:?}: {}", path, e);
+                info!("Skipped {:?}: {}", path.file_name().unwrap_or_default(), e);
                 {
                     let mut p = progress.lock().unwrap();
                     p.errors += 1;
