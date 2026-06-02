@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useConfigStore } from '@vasakgroup/plugin-config-manager';
-import { getIconSource } from '@vasakgroup/plugin-vicons';
 import type { Store } from 'pinia';
 import { onMounted, onUnmounted, type Ref, ref } from 'vue';
 import { RouterView } from 'vue-router';
 import TopBarComponent from '@/components/topbar/TopBarComponent.vue';
+import { useReactiveIcon } from '@/composables/useReactiveIcon';
 
 let unListenConfig: Ref<UnlistenFn | null> = ref(null);
-const appIcon: Ref<string> = ref('');
+const appIcon = useReactiveIcon('photo');
 
 onMounted(async () => {
 	try {
@@ -32,10 +32,6 @@ onUnmounted(() => {
 	if (unListenConfig.value !== null) {
 		unListenConfig.value();
 	}
-});
-
-onMounted(async () => {
-	appIcon.value = await getIconSource('photo');
 });
 </script>
 <template>
