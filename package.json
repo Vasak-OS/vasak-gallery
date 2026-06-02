@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bunx --bun vite",
+    "pretauri": "cd src-tauri && cargo build --manifest-path Cargo.toml --bin vasak-layer",
     "build": "bunx --bun vue-tsc --noEmit && bunx --bun vite build",
     "preview": "bunx --bun vite preview",
     "tauri": "tauri",
@@ -13,28 +14,28 @@
     "format": "bunx --bun biome format --write ."
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.2.4",
+    "@tailwindcss/vite": "^4.3.0",
     "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/plugin-shell": "^2.3.5",
-    "@vasakgroup/plugin-config-manager": "^2.2.3",
+    "@vasakgroup/plugin-config-manager": "^2.2.4",
     "@vasakgroup/plugin-vicons": "^2.0.0",
     "path": "^0.12.7",
     "pinia": "^3.0.4",
-    "vue-router": "^4.5.1",
+    "vue-router": "^4.6.4",
     "url": "^0.11.4",
-    "vue": "^3.5.34",
-    "vue-virtual-scroller": "^2.0.0"
+    "vue": "^3.5.35",
+    "vue-virtual-scroller": "^2.0.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.14",
-    "@tailwindcss/postcss": "^4.2.4",
-    "@tauri-apps/cli": "^2.11.1",
-    "@types/node": "^25.6.2",
-    "@vitejs/plugin-vue": "^6.0.6",
-    "postcss": "^8.5.14",
-    "tailwindcss": "^4.2.4",
+    "@biomejs/biome": "^2.4.16",
+    "@tailwindcss/postcss": "^4.3.0",
+    "@tauri-apps/cli": "^2.11.2",
+    "@types/node": "^25.9.1",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.3",
-    "vue-tsc": "^3.2.8"
+    "vite": "^7.3.5",
+    "vue-tsc": "^3.3.3"
   }
 }
