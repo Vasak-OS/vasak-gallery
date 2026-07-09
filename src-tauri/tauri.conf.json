@@ -39,6 +39,7 @@
         "files": {}
       },
       "deb": {
+        "desktopTemplate": "vasak-gallery.desktop.hbs",
         "depends": [
           "libcairo2",
           "desktop-file-utils",
