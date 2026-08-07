@@ -33,7 +33,7 @@ fn get_db() -> &'static Database {
 pub fn scan_media(window: tauri::Window) -> Result<(), String> {
     tauri::async_runtime::spawn(async move {
         let db = get_db();
-        match scan_media_directories(db).await {
+        match scan_media_directories(db, &window).await {
             Ok(progress) => {
                 let _ = window.emit("scan_completed", ScanResponse::from(progress));
             }

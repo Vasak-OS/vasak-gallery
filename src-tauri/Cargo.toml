@@ -29,6 +29,8 @@ gtk = "0.18"
 base64 = "0.22"
 rusqlite = { version = "0.31" }
 image = "0.24"
+kamadak-exif = "0.5"
+rayon = "1"
 ffmpeg-sidecar = "2.5"
 walkdir = "2"
 dirs = "5"

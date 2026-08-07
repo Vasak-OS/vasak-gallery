@@ -80,18 +80,12 @@ pub fn generate_video_thumbnail(video_path: &Path) -> Result<PathBuf, String> {
 const IMAGE_EXTENSIONS: &[&str] = &["jpg", "jpeg", "png", "gif", "webp", "bmp", "tiff"];
 
 pub fn is_image(path: &Path) -> bool {
-    let ext = path.extension()
-        .and_then(|ext| ext.to_str())
-        .map(|s| s.to_lowercase());
-
-    if !ext.as_deref().is_some_and(|e| IMAGE_EXTENSIONS.contains(&e)) {
-        return false;
-    }
-
-    image::io::Reader::open(path)
-        .ok()
-        .and_then(|r| r.with_guessed_format().ok())
-        .is_some()
+    matches!(
+        path.extension()
+            .and_then(|ext| ext.to_str())
+            .map(|s| s.to_lowercase()),
+        Some(ext) if IMAGE_EXTENSIONS.contains(&ext.as_str())
+    )
 }
 
 pub fn is_video(path: &Path) -> bool {

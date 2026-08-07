@@ -29,7 +29,13 @@ const isLoading = ref(false);
 const isScanning = ref(false);
 const error = ref<string | null>(null);
 const mediaType = ref<FilterType>('all');
-let unlistenScan: (() => void) | null = null;
+const scanProgress = ref<{ processed: number; total: number } | null>(null);
+let scanUnlisteners: Array<() => void> = [];
+
+function clearScanListeners() {
+	scanUnlisteners.forEach((u) => u());
+	scanUnlisteners = [];
+}
 
 // ─── Month grouping ───────────────────────────────────────────────────────────
 
@@ -78,19 +84,25 @@ async function loadImages(type: FilterType = mediaType.value) {
 async function scanMedia() {
 	if (isScanning.value) return;
 	isScanning.value = true;
+	scanProgress.value = null;
 	emit('scan-started');
-
-	if (unlistenScan) {
-		unlistenScan();
-		unlistenScan = null;
-	}
+	clearScanListeners();
 
 	try {
-		unlistenScan = await listen<{ total_found: number; processed: number; errors: number }>('scan_completed', async (event) => {
-			await loadImages();
-			emit('scan-completed', { total: event.payload.processed, errors: event.payload.errors });
-			isScanning.value = false;
-		});
+		scanUnlisteners.push(
+			await listen<{ total_found: number; processed: number; errors: number }>('scan_progress', (event) => {
+				scanProgress.value = { processed: event.payload.processed, total: event.payload.total_found };
+			})
+		);
+		scanUnlisteners.push(
+			await listen<{ total_found: number; processed: number; errors: number }>('scan_completed', async (event) => {
+				await loadImages();
+				emit('scan-completed', { total: event.payload.processed, errors: event.payload.errors });
+				isScanning.value = false;
+				scanProgress.value = null;
+				clearScanListeners();
+			})
+		);
 		await invoke('scan_media');
 	} catch (err) {
 		console.error('Scan error:', err);
@@ -110,7 +122,7 @@ function scrollToMonth(key: string) {
 onMounted(() => props.autoScan ? scanMedia() : loadImages());
 
 onUnmounted(() => {
-	if (unlistenScan) unlistenScan();
+	clearScanListeners();
 });
 
 defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
@@ -126,6 +138,12 @@ defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
         <AppButton @click="loadImages()">Reintentar</AppButton>
       </template>
     </StatePanel>
+
+    <StatePanel
+      v-else-if="isScanning && images.length === 0"
+      type="loading"
+      :message="scanProgress ? `Escaneando… ${scanProgress.processed}/${scanProgress.total}` : 'Escaneando…'"
+    />
 
     <StatePanel v-else-if="images.length === 0" type="empty" message="No hay imágenes o videos disponibles">
       <template #action>
