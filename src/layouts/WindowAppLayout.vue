@@ -39,7 +39,7 @@ onUnmounted(() => {
     class="h-screen w-screen bg-ui-bg/80 rounded-corner-window flex flex-col border border-ui-border overflow-hidden">
     <TopBarComponent>
       <img :src="appIcon" alt="Logo" class="h-6 w-6" />
-      <span class="font-bold">Gallery</span>
+      <span class="font-bold text-tx-main">Gallery</span>
       <span></span>
     </TopBarComponent>
     <div class="flex min-h-0 flex-1 p-1">
