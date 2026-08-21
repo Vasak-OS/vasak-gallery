@@ -70,6 +70,9 @@ vasak-gallery/
 │   │   ├── TimelineSidebar.vue # Barra lateral de navegación temporal
 │   │   ├── FullscreenViewer.vue
 │   │   └── topbar/
+│   ├── composables/
+│   │   ├── useMonthLabels.ts   # Nombres de mes traducidos
+│   │   └── useReactiveIcon.ts
 │   ├── layouts/
 │   │   └── WindowAppLayout.vue
 │   ├── types/
@@ -78,6 +81,9 @@ vasak-gallery/
 │       └── GalleryView.vue
 │
 └── src-tauri/                  # Backend Rust
+    ├── locales/                # Traducciones (es, en)
+    │   ├── es.yml
+    │   └── en.yml
     └── src/
         └── indexer/
             ├── scanner.rs      # Escaneo de directorios

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import MediaCard from '@/components/ui/MediaCard.vue';
 import StatePanel from '@/components/ui/StatePanel.vue';
+import { useMonthLabels } from '@/composables/useMonthLabels';
 import type { FilterType, MediaItem, MediaItemWithLoading, TimelineEntry } from '@/types/gallery';
 
 // ─── Emits & Props ────────────────────────────────────────────────────────────
@@ -21,6 +23,9 @@ const props = withDefaults(defineProps<{
 }>(), {
 	autoScan: true,
 });
+
+const { t } = useI18n();
+const { monthLong } = useMonthLabels();
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -39,8 +44,6 @@ function clearScanListeners() {
 
 // ─── Month grouping ───────────────────────────────────────────────────────────
 
-const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
 interface MonthGroup { key: string; label: string; items: MediaItemWithLoading[] }
 
 const groupedByMonth = computed<MonthGroup[]>(() => {
@@ -49,7 +52,7 @@ const groupedByMonth = computed<MonthGroup[]>(() => {
 		const d = new Date(item.created_at);
 		const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 		if (!map.has(key)) {
-			map.set(key, { key, label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}`, items: [] });
+			map.set(key, { key, label: `${monthLong(d.getMonth() + 1)} ${d.getFullYear()}`, items: [] });
 		}
 		map.get(key)?.items.push(item);
 	}
@@ -75,7 +78,7 @@ async function loadImages(type: FilterType = mediaType.value) {
 		images.value = result.map(i => ({ ...i, isLoaded: false, isError: false }));
 		emitTimeline();
 	} catch (err) {
-		error.value = err instanceof Error ? err.message : 'Error al cargar imágenes';
+		error.value = err instanceof Error ? err.message : t('components.imageGrid.loadError');
 	} finally {
 		isLoading.value = false;
 	}
@@ -110,6 +113,23 @@ async function scanMedia() {
 	}
 }
 
+// ─── Labels ───────────────────────────────────────────────────────────────────
+
+// El t() del plugin no interpola, así que los {0}/{1} se reemplazan a mano.
+const scanningMessage = computed(() => {
+	const progress = scanProgress.value;
+	if (!progress) return t('components.imageGrid.scanning');
+	return t('components.imageGrid.scanningProgress')
+		.replace('{0}', String(progress.processed))
+		.replace('{1}', String(progress.total));
+});
+
+const itemCountLabel = computed(() =>
+	t('components.imageGrid.itemCount').replace('{0}', String(images.value.length))
+);
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+
 function filterByType(type: string) {
 	mediaType.value = type as FilterType;
 	loadImages(type as FilterType);
@@ -131,24 +151,24 @@ defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
 <template>
   <div>
 
-    <StatePanel v-if="isLoading" type="loading" message="Cargando imágenes..." />
+    <StatePanel v-if="isLoading" type="loading" :message="t('components.imageGrid.loading')" />
 
     <StatePanel v-else-if="error" type="error" :message="error">
       <template #action>
-        <AppButton @click="loadImages()">Reintentar</AppButton>
+        <AppButton @click="loadImages()">{{ t('common.retry') }}</AppButton>
       </template>
     </StatePanel>
 
     <StatePanel
       v-else-if="isScanning && images.length === 0"
       type="loading"
-      :message="scanProgress ? `Escaneando… ${scanProgress.processed}/${scanProgress.total}` : 'Escaneando…'"
+      :message="scanningMessage"
     />
 
-    <StatePanel v-else-if="images.length === 0" type="empty" message="No hay imágenes o videos disponibles">
+    <StatePanel v-else-if="images.length === 0" type="empty" :message="t('components.imageGrid.empty')">
       <template #action>
         <AppButton v-if="!isScanning" variant="primary" @click="scanMedia">
-          Escanear ahora
+          {{ t('components.imageGrid.scanNow') }}
         </AppButton>
       </template>
     </StatePanel>
@@ -183,7 +203,7 @@ defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
 
       <!-- Total count -->
       <p class="px-4 py-3 text-center text-xs text-tx-muted">
-        {{ images.length }} elementos
+        {{ itemCountLabel }}
       </p>
     </template>
 

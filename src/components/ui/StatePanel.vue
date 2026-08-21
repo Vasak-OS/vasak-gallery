@@ -3,10 +3,14 @@
  * Panel de estado centrado: loading, error o empty.
  * Slot por defecto para el contenido, slot "action" para botones.
  */
+import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
+
 defineProps<{
 	type: 'loading' | 'error' | 'empty';
 	message?: string;
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -15,7 +19,7 @@ defineProps<{
     <!-- Loading -->
     <template v-if="type === 'loading'">
       <div class="h-10 w-10 animate-spin rounded-full border-4 border-ui-border border-t-primary" />
-      <p class="text-sm text-tx-muted">{{ message ?? 'Cargando...' }}</p>
+      <p class="text-sm text-tx-muted">{{ message ?? t('common.loading') }}</p>
     </template>
 
     <!-- Error -->
@@ -26,7 +30,7 @@ defineProps<{
 
     <!-- Empty -->
     <template v-else>
-      <p class="text-sm text-tx-muted">{{ message ?? 'Sin contenido' }}</p>
+      <p class="text-sm text-tx-muted">{{ message ?? t('common.empty') }}</p>
       <slot name="action" />
     </template>
 

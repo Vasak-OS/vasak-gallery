@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { convertFileSrc } from '@tauri-apps/api/core';
+import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
 import { computed, ref } from 'vue';
 import type { MediaItem } from '@/types/gallery';
 
 const props = defineProps<{ item: MediaItem }>();
 const emit = defineEmits<{ click: [item: MediaItem] }>();
+
+const { t, locale } = useI18n();
 
 const isLoaded = ref(false);
 const isError = ref(false);
@@ -19,6 +22,15 @@ const imgSrc = computed(() =>
 	isAnimated.value && isHovered.value
 		? convertFileSrc(props.item.original_path)
 		: convertFileSrc(props.item.thumbnail_path)
+);
+
+// La fecha se formatea con el idioma activo, no con uno fijo
+const formattedDate = computed(() =>
+	new Date(props.item.created_at).toLocaleDateString(locale.value, {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric',
+	})
 );
 
 // Badge de tipo
@@ -73,7 +85,7 @@ const typeBadge = computed(() => {
       <!-- Error badge -->
       <div v-if="isError" class="absolute inset-0 flex items-center justify-center bg-ui-bg/60">
         <span class="rounded-full border border-ui-border bg-ui-surface px-3 py-1 text-xs text-tx-muted">
-          Error al cargar
+          {{ t('components.mediaCard.loadError') }}
         </span>
       </div>
 
@@ -87,7 +99,7 @@ const typeBadge = computed(() => {
         {{ item.original_path.split('/').pop() }}
       </p>
       <p class="text-xs text-tx-muted">
-        {{ new Date(item.created_at).toLocaleDateString('es', { year: 'numeric', month: 'short', day: 'numeric' }) }}
+        {{ formattedDate }}
       </p>
     </div>
   </button>
