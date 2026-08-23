@@ -1,0 +1,27 @@
+_version: 1
+
+components:
+  contextMenu:
+    open: Abrir
+    openWithSystem: Abrir con la aplicación del sistema
+    copyImage: Copiar la imagen
+    copyPath: Copiar la ruta
+    showInFiles: Mostrar en el gestor de archivos
+    setWallpaper: Poner como fondo de escritorio
+    reload: Recargar
+    scan: Buscar fotos y videos nuevos
+    filter: Mostrar
+    filterAll: Todo
+    filterImages: Imágenes
+    filterVideos: Videos
+    sort: Ordenar
+    sortNewest: Más recientes primero
+    sortOldest: Más antiguos primero
+
+notifications:
+  copiedImage: Imagen copiada al portapapeles
+  copiedPath: Ruta copiada al portapapeles
+  wallpaperSet: Ese es el nuevo fondo de escritorio
+  copyError: 'No se pudo copiar: {0}'
+  wallpaperError: 'No se pudo cambiar el fondo de escritorio: {0}'
+  openError: 'No se pudo abrir: {0}'

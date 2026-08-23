@@ -69,16 +69,27 @@ vasak-gallery/
 │   │   ├── Lightbox.vue        # Visor fullscreen con zoom y video player
 │   │   ├── TimelineSidebar.vue # Barra lateral de navegación temporal
 │   │   ├── FullscreenViewer.vue
+│   │   ├── menu/               # Menú de clic derecho de la galería
+│   │   ├── ui/contextmenu/     # Piezas del menú contextual de VasakOS
 │   │   └── topbar/
+│   ├── composables/
+│   │   ├── useMediaActions.ts  # Copiar, abrir, poner como fondo
+│   │   └── useNotification.ts  # Avisos breves de resultado
 │   ├── layouts/
 │   │   └── WindowAppLayout.vue
 │   ├── types/
 │   │   └── gallery.ts          # Todos los tipos TypeScript
+│   ├── utils/
+│   │   └── web-view-features.ts # Apaga el menú y la búsqueda del motor
 │   └── views/
 │       └── GalleryView.vue
 │
 └── src-tauri/                  # Backend Rust
+    ├── locales/                # Traducciones (es, en)
+    │   ├── es.yml
+    │   └── en.yml
     └── src/
+        ├── clipboard.rs        # Portapapeles del sistema vía GTK
         └── indexer/
             ├── scanner.rs      # Escaneo de directorios
             ├── thumbnail.rs    # Generación de miniaturas

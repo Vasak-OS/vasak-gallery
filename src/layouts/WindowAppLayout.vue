@@ -5,6 +5,7 @@ import type { Store } from 'pinia';
 import { onMounted, onUnmounted, type Ref, ref } from 'vue';
 import { RouterView } from 'vue-router';
 import TopBarComponent from '@/components/topbar/TopBarComponent.vue';
+import NotificationToast from '@/components/ui/NotificationToast.vue';
 import { useReactiveIcon } from '@/composables/useReactiveIcon';
 
 let unListenConfig: Ref<UnlistenFn | null> = ref(null);
@@ -45,5 +46,6 @@ onUnmounted(() => {
     <div class="flex min-h-0 flex-1 p-1">
       <RouterView class="min-h-0 flex-1" />
     </div>
+    <NotificationToast />
   </div>
 </template>

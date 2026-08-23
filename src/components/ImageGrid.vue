@@ -2,10 +2,20 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import GalleryContextMenuComponent from '@/components/menu/GalleryContextMenuComponent.vue';
 import AppButton from '@/components/ui/AppButton.vue';
+import ContextMenu from '@/components/ui/contextmenu/ContextMenu.vue';
+import ContextMenuTrigger from '@/components/ui/contextmenu/ContextMenuTrigger.vue';
 import MediaCard from '@/components/ui/MediaCard.vue';
 import StatePanel from '@/components/ui/StatePanel.vue';
-import type { FilterType, MediaItem, MediaItemWithLoading, TimelineEntry } from '@/types/gallery';
+import { useMediaActions } from '@/composables/useMediaActions';
+import type {
+	FilterType,
+	MediaItem,
+	MediaItemWithLoading,
+	SortOrder,
+	TimelineEntry,
+} from '@/types/gallery';
 
 // ─── Emits & Props ────────────────────────────────────────────────────────────
 
@@ -29,6 +39,7 @@ const isLoading = ref(false);
 const isScanning = ref(false);
 const error = ref<string | null>(null);
 const mediaType = ref<FilterType>('all');
+const sortOrder = ref<SortOrder>('newest');
 const scanProgress = ref<{ processed: number; total: number } | null>(null);
 let scanUnlisteners: Array<() => void> = [];
 
@@ -53,7 +64,18 @@ const groupedByMonth = computed<MonthGroup[]>(() => {
 		}
 		map.get(key)?.items.push(item);
 	}
-	return Array.from(map.values()).sort((a, b) => b.key.localeCompare(a.key));
+
+	// La base entrega lo más nuevo primero; para ver primero lo más viejo se da
+	// vuelta tanto el orden de los meses como el de las fotos de cada mes.
+	const groups = Array.from(map.values()).sort((a, b) =>
+		sortOrder.value === 'newest' ? b.key.localeCompare(a.key) : a.key.localeCompare(b.key)
+	);
+
+	if (sortOrder.value === 'oldest') {
+		return groups.map((group) => ({ ...group, items: [...group.items].reverse() }));
+	}
+
+	return groups;
 });
 
 function emitTimeline() {
@@ -115,6 +137,11 @@ function filterByType(type: string) {
 	loadImages(type as FilterType);
 }
 
+function sortBy(order: SortOrder) {
+	sortOrder.value = order;
+	emitTimeline();
+}
+
 function scrollToMonth(key: string) {
 	document.getElementById(`month-${key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -125,11 +152,42 @@ onUnmounted(() => {
 	clearScanListeners();
 });
 
-defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
+// ─── Menú contextual propio ──────────────────────────────────────────────────
+// Antes el clic derecho mostraba el menú del motor del navegador, con
+// «Recargar» e «Inspeccionar». Ahora abre un menú de VasakOS, y para saber
+// sobre qué foto se hizo clic se busca la miniatura más cercana al punto donde
+// cayó: así alcanza un solo menú para toda la grilla en lugar de uno por
+// miniatura.
+
+const mediaActions = useMediaActions();
+const contextItem = ref<MediaItem | null>(null);
+
+function findContextItem(event: MouseEvent): MediaItem | null {
+	const target = event.target as HTMLElement | null;
+	const card = target?.closest('[data-media-id]');
+	const id = card?.getAttribute('data-media-id');
+
+	if (!id) {
+		return null;
+	}
+
+	return images.value.find((item) => String(item.id) === id) ?? null;
+}
+
+function handleContextMenu(event: MouseEvent) {
+	contextItem.value = findContextItem(event);
+}
+
+function openItem(item: MediaItem) {
+	emit('image-clicked', { item, items: images.value });
+}
+
+defineExpose({ loadImages, scanMedia, filterByType, sortBy, scrollToMonth });
 </script>
 
 <template>
-  <div>
+  <ContextMenu class="block min-h-full" @contextmenu.capture="handleContextMenu">
+    <ContextMenuTrigger>
 
     <StatePanel v-if="isLoading" type="loading" message="Cargando imágenes..." />
 
@@ -175,6 +233,7 @@ defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
           <MediaCard
             v-for="item in group.items"
             :key="item.id"
+            :data-media-id="item.id"
             :item="item"
             @click="emit('image-clicked', { item, items: images })"
           />
@@ -186,6 +245,20 @@ defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
         {{ images.length }} elementos
       </p>
     </template>
+    </ContextMenuTrigger>
 
-  </div>
+    <GalleryContextMenuComponent
+      :item="contextItem"
+      @open="openItem"
+      @open-with-system="mediaActions.openWithSystem"
+      @copy-image="mediaActions.copyImage"
+      @copy-path="mediaActions.copyPath"
+      @show-in-files="mediaActions.showInFileManager"
+      @set-wallpaper="mediaActions.setAsWallpaper"
+      @reload="loadImages()"
+      @scan="scanMedia"
+      @filter="filterByType"
+      @sort="sortBy"
+    />
+  </ContextMenu>
 </template>

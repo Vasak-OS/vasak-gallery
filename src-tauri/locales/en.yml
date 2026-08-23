@@ -1,0 +1,27 @@
+_version: 1
+
+components:
+  contextMenu:
+    open: Open
+    openWithSystem: Open with the system application
+    copyImage: Copy the image
+    copyPath: Copy the path
+    showInFiles: Show in the file manager
+    setWallpaper: Set as desktop background
+    reload: Reload
+    scan: Look for new photos and videos
+    filter: Show
+    filterAll: Everything
+    filterImages: Images
+    filterVideos: Videos
+    sort: Sort
+    sortNewest: Newest first
+    sortOldest: Oldest first
+
+notifications:
+  copiedImage: Image copied to the clipboard
+  copiedPath: Path copied to the clipboard
+  wallpaperSet: That is the new desktop background
+  copyError: 'Could not copy: {0}'
+  wallpaperError: 'Could not change the desktop background: {0}'
+  openError: 'Could not open: {0}'
