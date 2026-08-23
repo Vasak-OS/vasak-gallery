@@ -1,5 +1,23 @@
 _version: 1
 
+common:
+  loading: Cargando…
+  retry: Reintentar
+  empty: Sin contenido
+  loadError: Error al cargar
+
+views:
+  app:
+    title: Galería
+    iconAlt: Icono de la aplicación
+  gallery:
+    section: Vasak Gallery
+    title: Galería
+    scan: Escanear
+    filterAll: Todo
+    filterImages: Imágenes
+    filterVideos: Videos
+
 components:
   contextMenu:
     open: Abrir
@@ -17,6 +35,61 @@ components:
     sort: Ordenar
     sortNewest: Más recientes primero
     sortOldest: Más antiguos primero
+  imageGrid:
+    loading: Cargando imágenes…
+    loadError: Error al cargar las imágenes
+    scanning: Escaneando…
+    scanningProgress: 'Escaneando… {0}/{1}'
+    empty: No hay imágenes o videos disponibles
+    scanNow: Escanear ahora
+    itemCount: '{0} elementos'
+  mediaCard:
+    loadError: Error al cargar
+  lightbox:
+    close: Cerrar
+    prev: Anterior
+    next: Siguiente
+    zoomHint: Rueda para zoom · Arrastra para mover · Doble clic para resetear
+    play: Reproducir
+    pause: Pausar
+    mute: Silenciar
+    unmute: Activar sonido
+    videoUnsupported: El WebView no puede reproducir este video
+    openWithSystem: Abrir con reproductor del sistema
+    videoErrors:
+      aborted: Carga abortada
+      network: Error de red
+      decode: Codec no soportado por el WebView
+      format: Formato no soportado por el WebView
+      unknown: Error desconocido al reproducir el video
+
+months:
+  long:
+    january: Enero
+    february: Febrero
+    march: Marzo
+    april: Abril
+    may: Mayo
+    june: Junio
+    july: Julio
+    august: Agosto
+    september: Septiembre
+    october: Octubre
+    november: Noviembre
+    december: Diciembre
+  short:
+    january: Ene
+    february: Feb
+    march: Mar
+    april: Abr
+    may: May
+    june: Jun
+    july: Jul
+    august: Ago
+    september: Sep
+    october: Oct
+    november: Nov
+    december: Dic
 
 notifications:
   copiedImage: Imagen copiada al portapapeles

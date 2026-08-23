@@ -74,7 +74,9 @@ vasak-gallery/
 │   │   └── topbar/
 │   ├── composables/
 │   │   ├── useMediaActions.ts  # Copiar, abrir, poner como fondo
-│   │   └── useNotification.ts  # Avisos breves de resultado
+│   │   ├── useMonthLabels.ts   # Nombres de mes traducidos
+│   │   ├── useNotification.ts  # Avisos breves de resultado
+│   │   └── useReactiveIcon.ts
 │   ├── layouts/
 │   │   └── WindowAppLayout.vue
 │   ├── types/

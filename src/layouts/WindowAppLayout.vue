@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useConfigStore } from '@vasakgroup/plugin-config-manager';
+import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
 import type { Store } from 'pinia';
 import { onMounted, onUnmounted, type Ref, ref } from 'vue';
 import { RouterView } from 'vue-router';
 import TopBarComponent from '@/components/topbar/TopBarComponent.vue';
 import NotificationToast from '@/components/ui/NotificationToast.vue';
 import { useReactiveIcon } from '@/composables/useReactiveIcon';
+
+const { t } = useI18n();
 
 let unListenConfig: Ref<UnlistenFn | null> = ref(null);
 const appIcon = useReactiveIcon('photo');
@@ -39,8 +42,8 @@ onUnmounted(() => {
   <div
     class="h-screen w-screen bg-ui-bg/80 rounded-corner-window flex flex-col border border-ui-border overflow-hidden">
     <TopBarComponent>
-      <img :src="appIcon" alt="Logo" class="h-6 w-6" />
-      <span class="font-bold text-tx-main">Gallery</span>
+      <img :src="appIcon" :alt="t('views.app.iconAlt')" class="h-6 w-6" />
+      <span class="font-bold text-tx-main">{{ t('views.app.title') }}</span>
       <span></span>
     </TopBarComponent>
     <div class="flex min-h-0 flex-1 p-1">
