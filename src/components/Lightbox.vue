@@ -276,7 +276,7 @@ const mediaSrc = computed(() =>
 
         <!-- ── Close button ── -->
         <button
-          class="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-ui-border bg-ui-surface/80 backdrop-blur-md transition hover:border-secondary hover:bg-primary/15"
+          class="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-ui-border bg-ui-surface/80 text-tx-main backdrop-blur-md transition hover:border-secondary hover:bg-primary/15"
           aria-label="Cerrar"
           @click="emit('close')"
         >
