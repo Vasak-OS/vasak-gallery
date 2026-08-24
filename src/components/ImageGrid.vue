@@ -1,11 +1,20 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import MediaCard from '@/components/ui/MediaCard.vue';
 import StatePanel from '@/components/ui/StatePanel.vue';
-import type { FilterType, MediaItem, MediaItemWithLoading, TimelineEntry } from '@/types/gallery';
+import { useGalleryContextMenu } from '@/composables/useGalleryContextMenu';
+import { useMonthLabels } from '@/composables/useMonthLabels';
+import type {
+	FilterType,
+	MediaItem,
+	MediaItemWithLoading,
+	SortOrder,
+	TimelineEntry,
+} from '@/types/gallery';
 
 // ─── Emits & Props ────────────────────────────────────────────────────────────
 
@@ -22,6 +31,9 @@ const props = withDefaults(defineProps<{
 	autoScan: true,
 });
 
+const { t } = useI18n();
+const { monthLong } = useMonthLabels();
+
 // ─── State ────────────────────────────────────────────────────────────────────
 
 const images = ref<MediaItemWithLoading[]>([]);
@@ -29,6 +41,7 @@ const isLoading = ref(false);
 const isScanning = ref(false);
 const error = ref<string | null>(null);
 const mediaType = ref<FilterType>('all');
+const sortOrder = ref<SortOrder>('newest');
 const scanProgress = ref<{ processed: number; total: number } | null>(null);
 let scanUnlisteners: Array<() => void> = [];
 
@@ -39,8 +52,6 @@ function clearScanListeners() {
 
 // ─── Month grouping ───────────────────────────────────────────────────────────
 
-const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
 interface MonthGroup { key: string; label: string; items: MediaItemWithLoading[] }
 
 const groupedByMonth = computed<MonthGroup[]>(() => {
@@ -49,11 +60,22 @@ const groupedByMonth = computed<MonthGroup[]>(() => {
 		const d = new Date(item.created_at);
 		const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 		if (!map.has(key)) {
-			map.set(key, { key, label: `${MONTHS[d.getMonth()]} ${d.getFullYear()}`, items: [] });
+			map.set(key, { key, label: `${monthLong(d.getMonth() + 1)} ${d.getFullYear()}`, items: [] });
 		}
 		map.get(key)?.items.push(item);
 	}
-	return Array.from(map.values()).sort((a, b) => b.key.localeCompare(a.key));
+
+	// La base entrega lo más nuevo primero; para ver primero lo más viejo se da
+	// vuelta tanto el orden de los meses como el de las fotos de cada mes.
+	const groups = Array.from(map.values()).sort((a, b) =>
+		sortOrder.value === 'newest' ? b.key.localeCompare(a.key) : a.key.localeCompare(b.key)
+	);
+
+	if (sortOrder.value === 'oldest') {
+		return groups.map((group) => ({ ...group, items: [...group.items].reverse() }));
+	}
+
+	return groups;
 });
 
 function emitTimeline() {
@@ -75,7 +97,7 @@ async function loadImages(type: FilterType = mediaType.value) {
 		images.value = result.map(i => ({ ...i, isLoaded: false, isError: false }));
 		emitTimeline();
 	} catch (err) {
-		error.value = err instanceof Error ? err.message : 'Error al cargar imágenes';
+		error.value = err instanceof Error ? err.message : t('components.imageGrid.loadError');
 	} finally {
 		isLoading.value = false;
 	}
@@ -110,9 +132,31 @@ async function scanMedia() {
 	}
 }
 
+// ─── Labels ───────────────────────────────────────────────────────────────────
+
+// El t() del plugin no interpola, así que los {0}/{1} se reemplazan a mano.
+const scanningMessage = computed(() => {
+	const progress = scanProgress.value;
+	if (!progress) return t('components.imageGrid.scanning');
+	return t('components.imageGrid.scanningProgress')
+		.replace('{0}', String(progress.processed))
+		.replace('{1}', String(progress.total));
+});
+
+const itemCountLabel = computed(() =>
+	t('components.imageGrid.itemCount').replace('{0}', String(images.value.length))
+);
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+
 function filterByType(type: string) {
 	mediaType.value = type as FilterType;
 	loadImages(type as FilterType);
+}
+
+function sortBy(order: SortOrder) {
+	sortOrder.value = order;
+	emitTimeline();
 }
 
 function scrollToMonth(key: string) {
@@ -125,30 +169,64 @@ onUnmounted(() => {
 	clearScanListeners();
 });
 
-defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
+// ─── Menú contextual ─────────────────────────────────────────────────────────
+// El clic derecho abre el menú del escritorio. Para saber sobre qué foto se hizo
+// clic se busca la miniatura que contiene el punto donde cayó: así alcanza un
+// solo menú para toda la grilla en lugar de uno por miniatura.
+
+function openItem(item: MediaItem) {
+	emit('image-clicked', { item, items: images.value });
+}
+
+const { showMenu } = useGalleryContextMenu({
+	open: openItem,
+	reload: () => loadImages(),
+	scan: scanMedia,
+	filter: filterByType,
+	sort: sortBy,
+	currentFilter: () => mediaType.value,
+	currentSort: () => sortOrder.value,
+});
+
+function findContextItem(event: MouseEvent): MediaItem | null {
+	const target = event.target as HTMLElement | null;
+	const card = target?.closest('[data-media-id]');
+	const id = card?.getAttribute('data-media-id');
+
+	if (!id) {
+		return null;
+	}
+
+	return images.value.find((item) => String(item.id) === id) ?? null;
+}
+
+function handleContextMenu(event: MouseEvent) {
+	void showMenu(event, findContextItem(event));
+}
+
+defineExpose({ loadImages, scanMedia, filterByType, sortBy, scrollToMonth });
 </script>
 
 <template>
-  <div>
-
-    <StatePanel v-if="isLoading" type="loading" message="Cargando imágenes..." />
+  <div class="block min-h-full" @contextmenu="handleContextMenu">
+    <StatePanel v-if="isLoading" type="loading" :message="t('components.imageGrid.loading')" />
 
     <StatePanel v-else-if="error" type="error" :message="error">
       <template #action>
-        <AppButton @click="loadImages()">Reintentar</AppButton>
+        <AppButton @click="loadImages()">{{ t('common.retry') }}</AppButton>
       </template>
     </StatePanel>
 
     <StatePanel
       v-else-if="isScanning && images.length === 0"
       type="loading"
-      :message="scanProgress ? `Escaneando… ${scanProgress.processed}/${scanProgress.total}` : 'Escaneando…'"
+      :message="scanningMessage"
     />
 
-    <StatePanel v-else-if="images.length === 0" type="empty" message="No hay imágenes o videos disponibles">
+    <StatePanel v-else-if="images.length === 0" type="empty" :message="t('components.imageGrid.empty')">
       <template #action>
         <AppButton v-if="!isScanning" variant="primary" @click="scanMedia">
-          Escanear ahora
+          {{ t('components.imageGrid.scanNow') }}
         </AppButton>
       </template>
     </StatePanel>
@@ -175,6 +253,7 @@ defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
           <MediaCard
             v-for="item in group.items"
             :key="item.id"
+            :data-media-id="item.id"
             :item="item"
             @click="emit('image-clicked', { item, items: images })"
           />
@@ -183,9 +262,8 @@ defineExpose({ loadImages, scanMedia, filterByType, scrollToMonth });
 
       <!-- Total count -->
       <p class="px-4 py-3 text-center text-xs text-tx-muted">
-        {{ images.length }} elementos
+        {{ itemCountLabel }}
       </p>
     </template>
-
   </div>
 </template>

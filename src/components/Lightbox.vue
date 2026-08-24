@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { open as shellOpen } from '@tauri-apps/plugin-shell';
+import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useGalleryContextMenu } from '@/composables/useGalleryContextMenu';
 import type { LightboxProps, MediaItem } from '@/types/gallery';
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
@@ -12,6 +14,8 @@ const emit = defineEmits<{
 	close: [];
 	navigate: [item: MediaItem];
 }>();
+
+const { t } = useI18n();
 
 // ─── Navegación ───────────────────────────────────────────────────────────────
 
@@ -96,7 +100,7 @@ const currentTime = ref(0);
 const duration = ref(0);
 const volume = ref(1);
 const showControls = ref(true);
-const videoError = ref<string | null>(null);
+const videoErrorKey = ref<string | null>(null);
 let controlsTimer: ReturnType<typeof setTimeout> | null = null;
 // Evita llamar play() mientras ya hay una Promise pendiente
 let playPromise: Promise<void> | null = null;
@@ -144,16 +148,19 @@ function onLoadedMetadata() {
 function onVideoPlay() { isPlaying.value = true; }
 function onVideoPause() { isPlaying.value = false; }
 
+// Se guarda la clave, no el texto: así el mensaje sigue al idioma activo
+// aunque el error haya ocurrido antes de cambiarlo.
+const MEDIA_ERR_KEYS: Record<number, string> = {
+	1: 'components.lightbox.videoErrors.aborted',
+	2: 'components.lightbox.videoErrors.network',
+	3: 'components.lightbox.videoErrors.decode',
+	4: 'components.lightbox.videoErrors.format',
+};
+
 function onVideoError(e: Event) {
 	const video = e.target as HTMLVideoElement;
 	const code = video.error?.code;
-	const MEDIA_ERR: Record<number, string> = {
-		1: 'Carga abortada',
-		2: 'Error de red',
-		3: 'Codec no soportado por el WebView',
-		4: 'Formato no soportado por el WebView',
-	};
-	videoError.value = MEDIA_ERR[code ?? 0] ?? 'Error desconocido al reproducir el video';
+	videoErrorKey.value = MEDIA_ERR_KEYS[code ?? 0] ?? 'components.lightbox.videoErrors.unknown';
 	isPlaying.value = false;
 }
 
@@ -233,7 +240,7 @@ watch(
 		isPlaying.value = false;
 		currentTime.value = 0;
 		duration.value = 0;
-		videoError.value = null;
+		videoErrorKey.value = null;
 		playPromise = null;
 	}
 );
@@ -256,6 +263,19 @@ onUnmounted(() => {
 	if (controlsTimer) clearTimeout(controlsTimer);
 });
 
+// Con la foto abierta el clic derecho ofrece lo mismo que en la grilla: es el
+// momento en que se la está mirando y se la quiere copiar o poner de fondo.
+// Abrir sobra —ya está abierta— y ordenar la grilla tampoco viene al caso.
+const { showMenu } = useGalleryContextMenu();
+
+function handleContextMenu(event: MouseEvent) {
+	if (props.currentItem) {
+		void showMenu(event, props.currentItem);
+	}
+}
+
+const videoError = computed(() => (videoErrorKey.value ? t(videoErrorKey.value) : null));
+
 const fileName = computed(() => props.currentItem?.original_path.split('/').pop() ?? '');
 const mediaSrc = computed(() =>
 	props.currentItem ? convertFileSrc(props.currentItem.original_path) : ''
@@ -269,15 +289,15 @@ const mediaSrc = computed(() =>
         v-if="isOpen && currentItem"
         class="fixed inset-0 z-9999 flex items-center justify-center bg-ui-bg/80 rounded-corner backdrop-blur-sm"
         @mousemove="currentItem.media_type === 'video' ? resetControlsTimer() : undefined"
+        @contextmenu="handleContextMenu"
       >
-
         <!-- ── Backdrop click to close ── -->
         <div class="absolute inset-0" @click.self="emit('close')" />
 
         <!-- ── Close button ── -->
         <button
           class="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-ui-border bg-ui-surface/80 text-tx-main backdrop-blur-md transition hover:border-secondary hover:bg-primary/15"
-          aria-label="Cerrar"
+          :aria-label="t('components.lightbox.close')"
           @click="emit('close')"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -297,7 +317,7 @@ const mediaSrc = computed(() =>
         <button
           v-if="hasPrev"
           class="absolute left-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/80 backdrop-blur-md transition hover:border-primary/60 hover:bg-primary/15 hover:text-white active:scale-95"
-          aria-label="Anterior"
+          :aria-label="t('components.lightbox.prev')"
           @click="navigatePrev"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -309,7 +329,7 @@ const mediaSrc = computed(() =>
         <button
           v-if="hasNext"
           class="absolute right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/80 backdrop-blur-md transition hover:border-primary/60 hover:bg-primary/15 hover:text-white active:scale-95"
-          aria-label="Siguiente"
+          :aria-label="t('components.lightbox.next')"
           @click="navigateNext"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -350,7 +370,7 @@ const mediaSrc = computed(() =>
 
           <!-- Zoom hint -->
           <div class="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/40 px-4 py-1.5 text-xs text-white/40 backdrop-blur-md select-none">
-            Rueda para zoom · Arrastra para mover · Doble clic para resetear
+            {{ t('components.lightbox.zoomHint') }}
           </div>
         </div>
 
@@ -384,14 +404,14 @@ const mediaSrc = computed(() =>
           >
             <div class="rounded-2xl border border-white/10 bg-black/60 px-8 py-6 backdrop-blur-md flex flex-col items-center gap-3">
               <p class="text-3xl">🎬</p>
-              <p class="text-sm font-medium text-white/90">El WebView no puede reproducir este video</p>
+              <p class="text-sm font-medium text-white/90">{{ t('components.lightbox.videoUnsupported') }}</p>
               <p class="text-xs text-white/50">{{ videoError }}</p>
               <p class="font-mono text-xs text-white/30 break-all max-w-sm">{{ fileName }}</p>
               <button
                 class="mt-1 rounded-corner border border-primary/40 bg-primary/15 px-4 py-2 text-sm font-medium text-white transition hover:border-primary/70 hover:bg-primary/25 active:scale-95"
                 @click="openWithSystem"
               >
-                Abrir con reproductor del sistema
+                {{ t('components.lightbox.openWithSystem') }}
               </button>
             </div>
           </div>
@@ -429,7 +449,7 @@ const mediaSrc = computed(() =>
                 <!-- Play/Pause -->
                 <button
                   class="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:border-primary/60 hover:bg-primary/20 active:scale-95"
-                  :aria-label="isPlaying ? 'Pausar' : 'Reproducir'"
+                  :aria-label="isPlaying ? t('components.lightbox.pause') : t('components.lightbox.play')"
                   @click="togglePlay"
                 >
                   <!-- Play icon -->
@@ -445,7 +465,7 @@ const mediaSrc = computed(() =>
                 <!-- Mute -->
                 <button
                   class="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:border-primary/60 hover:bg-primary/20 active:scale-95"
-                  :aria-label="isMuted ? 'Activar sonido' : 'Silenciar'"
+                  :aria-label="isMuted ? t('components.lightbox.unmute') : t('components.lightbox.mute')"
                   @click="toggleMute"
                 >
                   <svg v-if="!isMuted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">

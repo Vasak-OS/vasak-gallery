@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
 import { ref } from 'vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ImageGrid from '@/components/ImageGrid.vue';
 import Lightbox from '@/components/Lightbox.vue';
 import TimelineSidebar from '@/components/TimelineSidebar.vue';
 import type { LightboxState, MediaItem, TimelineEntry } from '@/types/gallery';
+
+const { t } = useI18n();
 
 const lightbox = ref<LightboxState>({ isOpen: false, currentItem: null, items: [] });
 function openLightbox(payload: { item: MediaItem; items: MediaItem[] }) {
@@ -33,14 +36,14 @@ function onTimelineJump(key: string) {
     <header class="shrink-0 px-4 py-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-widest text-tx-muted">Vasak Gallery</p>
-          <h1 class="text-2xl font-semibold text-tx-main">Galería</h1>
+          <p class="text-xs font-semibold uppercase tracking-widest text-tx-muted">{{ t('views.gallery.section') }}</p>
+          <h1 class="text-2xl font-semibold text-tx-main">{{ t('views.gallery.title') }}</h1>
         </div>
         <div class="flex flex-wrap gap-2">
-          <AppButton size="sm" @click="gridRef?.scanMedia()">🔄 Escanear</AppButton>
-          <AppButton size="sm" @click="gridRef?.filterByType('all')">📋 Todo</AppButton>
-          <AppButton size="sm" @click="gridRef?.filterByType('image')">🖼️ Imágenes</AppButton>
-          <AppButton size="sm" @click="gridRef?.filterByType('video')">🎬 Videos</AppButton>
+          <AppButton size="sm" @click="gridRef?.scanMedia()">🔄 {{ t('views.gallery.scan') }}</AppButton>
+          <AppButton size="sm" @click="gridRef?.filterByType('all')">📋 {{ t('views.gallery.filterAll') }}</AppButton>
+          <AppButton size="sm" @click="gridRef?.filterByType('image')">🖼️ {{ t('views.gallery.filterImages') }}</AppButton>
+          <AppButton size="sm" @click="gridRef?.filterByType('video')">🎬 {{ t('views.gallery.filterVideos') }}</AppButton>
         </div>
       </div>
     </header>

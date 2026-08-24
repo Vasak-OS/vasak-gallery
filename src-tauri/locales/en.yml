@@ -1,0 +1,100 @@
+_version: 1
+
+common:
+  loading: Loading…
+  retry: Retry
+  empty: No content
+  loadError: Failed to load
+
+views:
+  app:
+    title: Gallery
+    iconAlt: Application icon
+  gallery:
+    section: Vasak Gallery
+    title: Gallery
+    scan: Scan
+    filterAll: All
+    filterImages: Images
+    filterVideos: Videos
+
+components:
+  contextMenu:
+    open: Open
+    openWithSystem: Open with the system application
+    copyImage: Copy the image
+    copyPath: Copy the path
+    showInFiles: Show in the file manager
+    setWallpaper: Set as desktop background
+    reload: Reload
+    scan: Look for new photos and videos
+    filter: Show
+    filterAll: Everything
+    filterImages: Images
+    filterVideos: Videos
+    sort: Sort
+    sortNewest: Newest first
+    sortOldest: Oldest first
+  imageGrid:
+    loading: Loading images…
+    loadError: Failed to load the images
+    scanning: Scanning…
+    scanningProgress: 'Scanning… {0}/{1}'
+    empty: No images or videos available
+    scanNow: Scan now
+    itemCount: '{0} items'
+  mediaCard:
+    loadError: Failed to load
+  lightbox:
+    close: Close
+    prev: Previous
+    next: Next
+    zoomHint: Wheel to zoom · Drag to pan · Double click to reset
+    play: Play
+    pause: Pause
+    mute: Mute
+    unmute: Unmute
+    videoUnsupported: The WebView cannot play this video
+    openWithSystem: Open with the system player
+    videoErrors:
+      aborted: Loading aborted
+      network: Network error
+      decode: Codec not supported by the WebView
+      format: Format not supported by the WebView
+      unknown: Unknown error while playing the video
+
+months:
+  long:
+    january: January
+    february: February
+    march: March
+    april: April
+    may: May
+    june: June
+    july: July
+    august: August
+    september: September
+    october: October
+    november: November
+    december: December
+  short:
+    january: Jan
+    february: Feb
+    march: Mar
+    april: Apr
+    may: May
+    june: Jun
+    july: Jul
+    august: Aug
+    september: Sep
+    october: Oct
+    november: Nov
+    december: Dec
+
+notifications:
+  copiedImage: Image copied to the clipboard
+  copiedPath: Path copied to the clipboard
+  wallpaperSet: That is the new desktop background
+  copyError: 'Could not copy: {0}'
+  wallpaperError: 'Could not change the desktop background: {0}'
+  openError: 'Could not open: {0}'

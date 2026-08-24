@@ -1,5 +1,7 @@
 export type MediaType = 'image' | 'video';
 export type FilterType = 'all' | 'image' | 'video';
+/** Orden de la grilla: lo último que entró primero, o al revés. */
+export type SortOrder = 'newest' | 'oldest';
 
 export interface MediaItem {
 	id: number;

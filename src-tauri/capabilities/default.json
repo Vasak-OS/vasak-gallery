@@ -3,7 +3,8 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": [
-    "main"
+    "main",
+    "vsk_context_menu"
   ],
   "permissions": [
     "core:default",
@@ -14,6 +15,11 @@
     "core:window:allow-minimize",
     "core:window:allow-close",
     "vicons:default",
-    "config-manager:default"
+    "config-manager:default",
+    "vsk-contextual-menu:default",
+    "i18n:allow-load-translations",
+    "i18n:allow-get-available-locales",
+    "i18n:allow-get-locale",
+    "i18n:allow-set-locale"
   ]
 }

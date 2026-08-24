@@ -70,6 +70,12 @@ vasak-gallery/
 │   │   ├── TimelineSidebar.vue # Barra lateral de navegación temporal
 │   │   ├── FullscreenViewer.vue
 │   │   └── topbar/
+│   ├── composables/
+│   │   ├── useGalleryContextMenu.ts # Qué ofrece el clic derecho
+│   │   ├── useMediaActions.ts  # Copiar, abrir, poner como fondo
+│   │   ├── useMonthLabels.ts   # Nombres de mes traducidos
+│   │   ├── useNotification.ts  # Avisos breves de resultado
+│   │   └── useReactiveIcon.ts
 │   ├── layouts/
 │   │   └── WindowAppLayout.vue
 │   ├── types/
@@ -78,7 +84,11 @@ vasak-gallery/
 │       └── GalleryView.vue
 │
 └── src-tauri/                  # Backend Rust
+    ├── locales/                # Traducciones (es, en)
+    │   ├── es.yml
+    │   └── en.yml
     └── src/
+        ├── clipboard.rs        # Portapapeles del sistema vía GTK
         └── indexer/
             ├── scanner.rs      # Escaneo de directorios
             ├── thumbnail.rs    # Generación de miniaturas

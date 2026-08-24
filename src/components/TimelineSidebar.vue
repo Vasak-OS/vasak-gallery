@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useMonthLabels } from '@/composables/useMonthLabels';
 import type { TimelineEntry } from '@/types/gallery';
 
 const props = defineProps<{
@@ -8,6 +9,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ jump: [key: string] }>();
+
+const { monthShort } = useMonthLabels();
 
 const isHovered = ref(false);
 
@@ -21,8 +24,6 @@ const grouped = computed<YearGroup[]>(() => {
 	}
 	return Array.from(map.values()).sort((a, b) => b.year - a.year);
 });
-
-const MONTH_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 </script>
 
 <template>
@@ -77,7 +78,7 @@ const MONTH_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct'
               activeKey === entry.key ? 'font-semibold text-primary' : 'text-tx-muted',
             ]"
           >
-            {{ MONTH_SHORT[entry.month - 1] }}
+            {{ monthShort(entry.month) }}
             <span class="opacity-50">{{ entry.count }}</span>
           </span>
 
@@ -87,7 +88,7 @@ const MONTH_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct'
               v-if="!isHovered"
               class="pointer-events-none absolute right-full top-1/2 z-100 mr-3 hidden -translate-y-1/2 whitespace-nowrap rounded-corner border border-ui-border bg-ui-bg px-2 py-1 text-xs text-tx-main shadow-lg group-hover/month:block"
             >
-              {{ MONTH_SHORT[entry.month - 1] }} {{ entry.year }}
+              {{ monthShort(entry.month) }} {{ entry.year }}
               <span class="ml-1 opacity-50">{{ entry.count }}</span>
               <!-- Flecha apuntando a la derecha -->
               <span class="absolute right-[-5px] top-1/2 -translate-y-1/2 border-4 border-transparent border-l-ui-border" />
