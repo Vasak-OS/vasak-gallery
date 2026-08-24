@@ -50,6 +50,7 @@ pub fn run() {
             locales_dir(),
         ))
         .plugin(tauri_plugin_vicons::init())
+        .plugin(tauri_plugin_vsk_contextual_menu::init())
         .invoke_handler(tauri::generate_handler![
             crate::indexer::commands::scan_media,
             crate::indexer::commands::get_all_media,

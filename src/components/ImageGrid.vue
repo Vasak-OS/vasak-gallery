@@ -3,13 +3,10 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import GalleryContextMenuComponent from '@/components/menu/GalleryContextMenuComponent.vue';
 import AppButton from '@/components/ui/AppButton.vue';
-import ContextMenu from '@/components/ui/contextmenu/ContextMenu.vue';
-import ContextMenuTrigger from '@/components/ui/contextmenu/ContextMenuTrigger.vue';
 import MediaCard from '@/components/ui/MediaCard.vue';
 import StatePanel from '@/components/ui/StatePanel.vue';
-import { useMediaActions } from '@/composables/useMediaActions';
+import { useGalleryContextMenu } from '@/composables/useGalleryContextMenu';
 import { useMonthLabels } from '@/composables/useMonthLabels';
 import type {
 	FilterType,
@@ -172,15 +169,24 @@ onUnmounted(() => {
 	clearScanListeners();
 });
 
-// ─── Menú contextual propio ──────────────────────────────────────────────────
-// Antes el clic derecho mostraba el menú del motor del navegador, con
-// «Recargar» e «Inspeccionar». Ahora abre un menú de VasakOS, y para saber
-// sobre qué foto se hizo clic se busca la miniatura más cercana al punto donde
-// cayó: así alcanza un solo menú para toda la grilla en lugar de uno por
-// miniatura.
+// ─── Menú contextual ─────────────────────────────────────────────────────────
+// El clic derecho abre el menú del escritorio. Para saber sobre qué foto se hizo
+// clic se busca la miniatura que contiene el punto donde cayó: así alcanza un
+// solo menú para toda la grilla en lugar de uno por miniatura.
 
-const mediaActions = useMediaActions();
-const contextItem = ref<MediaItem | null>(null);
+function openItem(item: MediaItem) {
+	emit('image-clicked', { item, items: images.value });
+}
+
+const { showMenu } = useGalleryContextMenu({
+	open: openItem,
+	reload: () => loadImages(),
+	scan: scanMedia,
+	filter: filterByType,
+	sort: sortBy,
+	currentFilter: () => mediaType.value,
+	currentSort: () => sortOrder.value,
+});
 
 function findContextItem(event: MouseEvent): MediaItem | null {
 	const target = event.target as HTMLElement | null;
@@ -195,20 +201,14 @@ function findContextItem(event: MouseEvent): MediaItem | null {
 }
 
 function handleContextMenu(event: MouseEvent) {
-	contextItem.value = findContextItem(event);
-}
-
-function openItem(item: MediaItem) {
-	emit('image-clicked', { item, items: images.value });
+	void showMenu(event, findContextItem(event));
 }
 
 defineExpose({ loadImages, scanMedia, filterByType, sortBy, scrollToMonth });
 </script>
 
 <template>
-  <ContextMenu class="block min-h-full" @contextmenu.capture="handleContextMenu">
-    <ContextMenuTrigger>
-
+  <div class="block min-h-full" @contextmenu="handleContextMenu">
     <StatePanel v-if="isLoading" type="loading" :message="t('components.imageGrid.loading')" />
 
     <StatePanel v-else-if="error" type="error" :message="error">
@@ -265,20 +265,5 @@ defineExpose({ loadImages, scanMedia, filterByType, sortBy, scrollToMonth });
         {{ itemCountLabel }}
       </p>
     </template>
-    </ContextMenuTrigger>
-
-    <GalleryContextMenuComponent
-      :item="contextItem"
-      @open="openItem"
-      @open-with-system="mediaActions.openWithSystem"
-      @copy-image="mediaActions.copyImage"
-      @copy-path="mediaActions.copyPath"
-      @show-in-files="mediaActions.showInFileManager"
-      @set-wallpaper="mediaActions.setAsWallpaper"
-      @reload="loadImages()"
-      @scan="scanMedia"
-      @filter="filterByType"
-      @sort="sortBy"
-    />
-  </ContextMenu>
+  </div>
 </template>

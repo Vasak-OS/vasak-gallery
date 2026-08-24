@@ -69,10 +69,9 @@ vasak-gallery/
 │   │   ├── Lightbox.vue        # Visor fullscreen con zoom y video player
 │   │   ├── TimelineSidebar.vue # Barra lateral de navegación temporal
 │   │   ├── FullscreenViewer.vue
-│   │   ├── menu/               # Menú de clic derecho de la galería
-│   │   ├── ui/contextmenu/     # Piezas del menú contextual de VasakOS
 │   │   └── topbar/
 │   ├── composables/
+│   │   ├── useGalleryContextMenu.ts # Qué ofrece el clic derecho
 │   │   ├── useMediaActions.ts  # Copiar, abrir, poner como fondo
 │   │   ├── useMonthLabels.ts   # Nombres de mes traducidos
 │   │   ├── useNotification.ts  # Avisos breves de resultado
@@ -81,8 +80,6 @@ vasak-gallery/
 │   │   └── WindowAppLayout.vue
 │   ├── types/
 │   │   └── gallery.ts          # Todos los tipos TypeScript
-│   ├── utils/
-│   │   └── web-view-features.ts # Apaga el menú y la búsqueda del motor
 │   └── views/
 │       └── GalleryView.vue
 │

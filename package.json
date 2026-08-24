@@ -18,12 +18,13 @@
     "@tauri-apps/plugin-shell": "^2.3.5",
     "@vasakgroup/plugin-config-manager": "^2.2.6",
     "@vasakgroup/plugin-vicons": "^2.1.2",
+    "@vasakgroup/plugin-vsk-contextual-menu": "^2.0.0",
     "@vasakgroup/tauri-plugin-i18n": "^2.1.0",
     "path": "^0.12.7",
     "pinia": "^3.0.4",
-    "vue-router": "^4.6.4",
     "url": "^0.11.4",
     "vue": "^3.5.41",
+    "vue-router": "^4.6.4",
     "vue-virtual-scroller": "^2.0.1"
   },
   "devDependencies": {

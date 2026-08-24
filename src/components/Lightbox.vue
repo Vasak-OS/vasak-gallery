@@ -3,10 +3,7 @@ import { convertFileSrc } from '@tauri-apps/api/core';
 import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import GalleryContextMenuComponent from '@/components/menu/GalleryContextMenuComponent.vue';
-import ContextMenu from '@/components/ui/contextmenu/ContextMenu.vue';
-import ContextMenuTrigger from '@/components/ui/contextmenu/ContextMenuTrigger.vue';
-import { useMediaActions } from '@/composables/useMediaActions';
+import { useGalleryContextMenu } from '@/composables/useGalleryContextMenu';
 import type { LightboxProps, MediaItem } from '@/types/gallery';
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
@@ -268,7 +265,14 @@ onUnmounted(() => {
 
 // Con la foto abierta el clic derecho ofrece lo mismo que en la grilla: es el
 // momento en que se la está mirando y se la quiere copiar o poner de fondo.
-const mediaActions = useMediaActions();
+// Abrir sobra —ya está abierta— y ordenar la grilla tampoco viene al caso.
+const { showMenu } = useGalleryContextMenu();
+
+function handleContextMenu(event: MouseEvent) {
+	if (props.currentItem) {
+		void showMenu(event, props.currentItem);
+	}
+}
 
 const videoError = computed(() => (videoErrorKey.value ? t(videoErrorKey.value) : null));
 
@@ -285,10 +289,8 @@ const mediaSrc = computed(() =>
         v-if="isOpen && currentItem"
         class="fixed inset-0 z-9999 flex items-center justify-center bg-ui-bg/80 rounded-corner backdrop-blur-sm"
         @mousemove="currentItem.media_type === 'video' ? resetControlsTimer() : undefined"
+        @contextmenu="handleContextMenu"
       >
-      <ContextMenu class="contents">
-        <ContextMenuTrigger>
-
         <!-- ── Backdrop click to close ── -->
         <div class="absolute inset-0" @click.self="emit('close')" />
 
@@ -512,22 +514,6 @@ const mediaSrc = computed(() =>
           {{ fileName }}
         </div>
 
-        </ContextMenuTrigger>
-
-        <!-- El menú tiene que dibujarse por encima de la vista a pantalla
-             completa, que ya está en lo más alto de la pila. -->
-        <GalleryContextMenuComponent
-          :item="currentItem"
-          :show-open="false"
-          :show-view-options="false"
-          class="z-10000!"
-          @open-with-system="mediaActions.openWithSystem"
-          @copy-image="mediaActions.copyImage"
-          @copy-path="mediaActions.copyPath"
-          @show-in-files="mediaActions.showInFileManager"
-          @set-wallpaper="mediaActions.setAsWallpaper"
-        />
-      </ContextMenu>
       </div>
     </Transition>
   </Teleport>
