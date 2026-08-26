@@ -19,17 +19,20 @@ import type {
 // ─── Emits & Props ────────────────────────────────────────────────────────────
 
 const emit = defineEmits<{
-	'image-clicked':    [{ item: MediaItem; items: MediaItem[] }];
-	'scan-started':     [];
-	'scan-completed':   [{ total: number; errors: number }];
+	'image-clicked': [{ item: MediaItem; items: MediaItem[] }];
+	'scan-started': [];
+	'scan-completed': [{ total: number; errors: number }];
 	'timeline-updated': [entries: TimelineEntry[]];
 }>();
 
-const props = withDefaults(defineProps<{
-	autoScan?: boolean;
-}>(), {
-	autoScan: true,
-});
+const props = withDefaults(
+	defineProps<{
+		autoScan?: boolean;
+	}>(),
+	{
+		autoScan: true,
+	}
+);
 
 const { t } = useI18n();
 const { monthLong } = useMonthLabels();
@@ -46,13 +49,19 @@ const scanProgress = ref<{ processed: number; total: number } | null>(null);
 let scanUnlisteners: Array<() => void> = [];
 
 function clearScanListeners() {
-	scanUnlisteners.forEach((u) => u());
+	scanUnlisteners.forEach((u) => {
+		u();
+	});
 	scanUnlisteners = [];
 }
 
 // ─── Month grouping ───────────────────────────────────────────────────────────
 
-interface MonthGroup { key: string; label: string; items: MediaItemWithLoading[] }
+interface MonthGroup {
+	key: string;
+	label: string;
+	items: MediaItemWithLoading[];
+}
 
 const groupedByMonth = computed<MonthGroup[]>(() => {
 	const map = new Map<string, MonthGroup>();
@@ -79,10 +88,13 @@ const groupedByMonth = computed<MonthGroup[]>(() => {
 });
 
 function emitTimeline() {
-	emit('timeline-updated', groupedByMonth.value.map(g => {
-		const [year, month] = g.key.split('-').map(Number);
-		return { key: g.key, year, month, count: g.items.length };
-	}));
+	emit(
+		'timeline-updated',
+		groupedByMonth.value.map((g) => {
+			const [year, month] = g.key.split('-').map(Number);
+			return { key: g.key, year, month, count: g.items.length };
+		})
+	);
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -94,7 +106,7 @@ async function loadImages(type: FilterType = mediaType.value) {
 		const result = await invoke<MediaItem[]>('get_all_media', {
 			mediaType: type === 'all' ? null : type,
 		});
-		images.value = result.map(i => ({ ...i, isLoaded: false, isError: false }));
+		images.value = result.map((i) => ({ ...i, isLoaded: false, isError: false }));
 		emitTimeline();
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : t('components.imageGrid.loadError');
@@ -112,18 +124,27 @@ async function scanMedia() {
 
 	try {
 		scanUnlisteners.push(
-			await listen<{ total_found: number; processed: number; errors: number }>('scan_progress', (event) => {
-				scanProgress.value = { processed: event.payload.processed, total: event.payload.total_found };
-			})
+			await listen<{ total_found: number; processed: number; errors: number }>(
+				'scan_progress',
+				(event) => {
+					scanProgress.value = {
+						processed: event.payload.processed,
+						total: event.payload.total_found,
+					};
+				}
+			)
 		);
 		scanUnlisteners.push(
-			await listen<{ total_found: number; processed: number; errors: number }>('scan_completed', async (event) => {
-				await loadImages();
-				emit('scan-completed', { total: event.payload.processed, errors: event.payload.errors });
-				isScanning.value = false;
-				scanProgress.value = null;
-				clearScanListeners();
-			})
+			await listen<{ total_found: number; processed: number; errors: number }>(
+				'scan_completed',
+				async (event) => {
+					await loadImages();
+					emit('scan-completed', { total: event.payload.processed, errors: event.payload.errors });
+					isScanning.value = false;
+					scanProgress.value = null;
+					clearScanListeners();
+				}
+			)
 		);
 		await invoke('scan_media');
 	} catch (err) {
@@ -163,7 +184,7 @@ function scrollToMonth(key: string) {
 	document.getElementById(`month-${key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-onMounted(() => props.autoScan ? scanMedia() : loadImages());
+onMounted(() => (props.autoScan ? scanMedia() : loadImages()));
 
 onUnmounted(() => {
 	clearScanListeners();

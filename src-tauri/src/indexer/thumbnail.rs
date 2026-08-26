@@ -62,10 +62,10 @@ pub fn generate_video_thumbnail(video_path: &Path) -> Result<PathBuf, String> {
         .arg("-loglevel").arg("error")
         .arg("-ss").arg("00:00:00.500")
         .arg("-i").arg(video_path.to_string_lossy().as_ref())
-        .arg("-vf").arg(&format!("scale={}:{}:force_original_aspect_ratio=decrease", THUMBNAIL_SIZE, THUMBNAIL_SIZE))
+        .arg("-vf").arg(format!("scale={}:{}:force_original_aspect_ratio=decrease", THUMBNAIL_SIZE, THUMBNAIL_SIZE))
         .arg("-vframes").arg("1")
         .arg("-q:v").arg("5")
-        .arg(&thumbnail_path.to_string_lossy().to_string())
+        .arg(thumbnail_path.to_string_lossy().to_string())
         .output()
         .map_err(|e| format!("Error executing ffmpeg: {}", e))?;
 

@@ -59,14 +59,11 @@ pub fn clear_cache() -> Result<String, String> {
     db.clear_all()
         .map_err(|e| format!("Database error: {}", e))?;
 
-    match crate::indexer::thumbnail::get_thumbnails_dir() {
-        Ok(thumbnails_dir) => {
-            if thumbnails_dir.exists() {
-                std::fs::remove_dir_all(&thumbnails_dir)
-                    .map_err(|e| format!("Error removing thumbnails directory: {}", e))?;
-            }
+    if let Ok(thumbnails_dir) = crate::indexer::thumbnail::get_thumbnails_dir() {
+        if thumbnails_dir.exists() {
+            std::fs::remove_dir_all(&thumbnails_dir)
+                .map_err(|e| format!("Error removing thumbnails directory: {}", e))?;
         }
-        Err(_) => {}
     }
 
     Ok("Cache cleared successfully".to_string())
