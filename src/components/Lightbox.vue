@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/** biome-ignore-all lint/style/useVueMultiWordComponentNames: la regla existe para
+ * que el nombre de un componente no choque con un elemento HTML. Ninguno de estos
+ * lo es, y renombrarlo obligaría a tocar cada uso sin ganar nada. */
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
@@ -19,9 +22,7 @@ const { t } = useI18n();
 
 // ─── Navegación ───────────────────────────────────────────────────────────────
 
-const currentIndex = computed(() =>
-	props.items.findIndex((i) => i.id === props.currentItem?.id)
-);
+const currentIndex = computed(() => props.items.findIndex((i) => i.id === props.currentItem?.id));
 
 const hasPrev = computed(() => currentIndex.value > 0);
 const hasNext = computed(() => currentIndex.value < props.items.length - 1);
@@ -113,11 +114,14 @@ function togglePlay() {
 	if (video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) return;
 
 	if (video.paused) {
-		playPromise = video.play().catch((err) => {
-			console.warn('Video play failed:', err);
-		}).finally(() => {
-			playPromise = null;
-		});
+		playPromise = video
+			.play()
+			.catch((err) => {
+				console.warn('Video play failed:', err);
+			})
+			.finally(() => {
+				playPromise = null;
+			});
 	} else {
 		// Solo pausar si no hay un play() en vuelo
 		if (playPromise) {
@@ -145,8 +149,12 @@ function onLoadedMetadata() {
 	isPlaying.value = !videoRef.value.paused;
 }
 
-function onVideoPlay() { isPlaying.value = true; }
-function onVideoPause() { isPlaying.value = false; }
+function onVideoPlay() {
+	isPlaying.value = true;
+}
+function onVideoPause() {
+	isPlaying.value = false;
+}
 
 // Se guarda la clave, no el texto: así el mensaje sigue al idioma activo
 // aunque el error haya ocurrido antes de cambiarlo.
@@ -189,7 +197,9 @@ function setVolume(e: Event) {
 function formatTime(secs: number): string {
 	if (!Number.isFinite(secs)) return '0:00';
 	const m = Math.floor(secs / 60);
-	const s = Math.floor(secs % 60).toString().padStart(2, '0');
+	const s = Math.floor(secs % 60)
+		.toString()
+		.padStart(2, '0');
 	return `${m}:${s}`;
 }
 
@@ -206,16 +216,23 @@ function resetControlsTimer() {
 function handleKeydown(e: KeyboardEvent) {
 	if (!props.isOpen) return;
 	switch (e.key) {
-		case 'Escape': emit('close'); break;
-		case 'ArrowLeft': navigatePrev(); break;
-		case 'ArrowRight': navigateNext(); break;
+		case 'Escape':
+			emit('close');
+			break;
+		case 'ArrowLeft':
+			navigatePrev();
+			break;
+		case 'ArrowRight':
+			navigateNext();
+			break;
 		case ' ':
 			e.preventDefault();
 			if (props.currentItem?.media_type === 'video') {
 				togglePlay();
 			}
 			break;
-		case '+': case '=':
+		case '+':
+		case '=':
 			e.preventDefault();
 			if (props.currentItem?.media_type === 'image') {
 				scale.value = Math.min(MAX_SCALE, scale.value + ZOOM_STEP * 2);
@@ -228,7 +245,9 @@ function handleKeydown(e: KeyboardEvent) {
 				if (scale.value <= 1) resetZoom();
 			}
 			break;
-		case '0': resetZoom(); break;
+		case '0':
+			resetZoom();
+			break;
 	}
 }
 

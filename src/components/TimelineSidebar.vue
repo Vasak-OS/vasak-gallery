@@ -14,13 +14,20 @@ const { monthShort } = useMonthLabels();
 
 const isHovered = ref(false);
 
-interface YearGroup { year: number; months: TimelineEntry[] }
+interface YearGroup {
+	year: number;
+	months: TimelineEntry[];
+}
 
 const grouped = computed<YearGroup[]>(() => {
 	const map = new Map<number, YearGroup>();
 	for (const e of props.entries) {
-		if (!map.has(e.year)) map.set(e.year, { year: e.year, months: [] });
-		map.get(e.year)!.months.push(e);
+		let grupo = map.get(e.year);
+		if (!grupo) {
+			grupo = { year: e.year, months: [] };
+			map.set(e.year, grupo);
+		}
+		grupo.months.push(e);
 	}
 	return Array.from(map.values()).sort((a, b) => b.year - a.year);
 });

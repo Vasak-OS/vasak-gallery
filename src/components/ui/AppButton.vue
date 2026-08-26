@@ -2,15 +2,18 @@
 /**
  * Botón reutilizable con variantes del sistema de diseño Vasak.
  */
-withDefaults(defineProps<{
-	variant?: 'default' | 'primary' | 'ghost' | 'danger';
-	size?: 'sm' | 'md';
-	disabled?: boolean;
-}>(), {
-	variant: 'default',
-	size: 'md',
-	disabled: false,
-});
+withDefaults(
+	defineProps<{
+		variant?: 'default' | 'primary' | 'ghost' | 'danger';
+		size?: 'sm' | 'md';
+		disabled?: boolean;
+	}>(),
+	{
+		variant: 'default',
+		size: 'md',
+		disabled: false,
+	}
+);
 </script>
 
 <template>

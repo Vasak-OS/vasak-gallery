@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
 import { ref } from 'vue';
-import AppButton from '@/components/ui/AppButton.vue';
 import ImageGrid from '@/components/ImageGrid.vue';
 import Lightbox from '@/components/Lightbox.vue';
 import TimelineSidebar from '@/components/TimelineSidebar.vue';
+import AppButton from '@/components/ui/AppButton.vue';
 import type { LightboxState, MediaItem, TimelineEntry } from '@/types/gallery';
 
 const { t } = useI18n();
