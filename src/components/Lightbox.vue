@@ -373,7 +373,7 @@ const mediaSrc = computed(() =>
             :src="mediaSrc"
             :alt="fileName"
             :style="{ transform: imageTransform, cursor: imageCursor, userSelect: 'none' }"
-            class="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-[0_20px_80px_rgba(0,0,0,0.6)] transition-transform duration-100 will-change-transform"
+            class="max-h-[90vh] max-w-[90vw] rounded-corner object-contain shadow-[0_20px_80px_rgba(0,0,0,0.6)] transition-transform duration-100 will-change-transform"
             draggable="false"
           />
 
@@ -406,7 +406,7 @@ const mediaSrc = computed(() =>
           <video
             ref="videoRef"
             :src="mediaSrc"
-            class="max-h-[calc(100vh-100px)] max-w-[90vw] rounded-xl object-contain shadow-[0_20px_80px_rgba(0,0,0,0.6)]"
+            class="max-h-[calc(100vh-100px)] max-w-[90vw] rounded-corner object-contain shadow-[0_20px_80px_rgba(0,0,0,0.6)]"
             autoplay
             muted
             @timeupdate="onTimeUpdate"
@@ -421,7 +421,7 @@ const mediaSrc = computed(() =>
             v-if="videoError"
             class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center"
           >
-            <div class="rounded-2xl border border-white/10 bg-black/60 px-8 py-6 backdrop-blur-md flex flex-col items-center gap-3">
+            <div class="rounded-corner border border-white/10 bg-black/60 px-8 py-6 backdrop-blur-md flex flex-col items-center gap-3">
               <p class="text-3xl">🎬</p>
               <p class="text-sm font-medium text-white/90">{{ t('components.lightbox.videoUnsupported') }}</p>
               <p class="text-xs text-white/50">{{ videoError }}</p>
@@ -439,7 +439,7 @@ const mediaSrc = computed(() =>
           <Transition name="controls">
             <div
               v-show="showControls"
-              class="absolute bottom-0 left-0 right-0 flex flex-col gap-2 rounded-b-xl bg-linear-to-t from-black/80 via-black/40 to-transparent px-4 pb-4 pt-10"
+              class="absolute bottom-0 left-0 right-0 flex flex-col gap-2 rounded-b-corner bg-linear-to-t from-black/80 via-black/40 to-transparent px-4 pb-4 pt-10"
             >
               <!-- Progress bar -->
               <div class="flex items-center gap-3">
