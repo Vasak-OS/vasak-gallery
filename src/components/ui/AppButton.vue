@@ -4,6 +4,12 @@
  */
 withDefaults(
 	defineProps<{
+		/**
+		 * Nombre accesible, ya traducido. Opcional: el contenido del slot
+		 * normalmente ya nombra al botón. Se pasa cuando ese contenido no sirve
+		 * como nombre — un emoji, sólo un icono — porque `aria-label` lo reemplaza.
+		 */
+		label?: string;
 		variant?: 'default' | 'primary' | 'ghost' | 'danger';
 		size?: 'sm' | 'md';
 		disabled?: boolean;
@@ -19,6 +25,7 @@ withDefaults(
 <template>
   <button
     :disabled="disabled"
+    :aria-label="label"
     class="inline-flex items-center justify-center gap-1.5 rounded-corner border font-medium transition
            disabled:cursor-not-allowed disabled:opacity-50"
     :class="{

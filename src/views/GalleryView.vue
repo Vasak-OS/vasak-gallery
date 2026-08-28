@@ -40,10 +40,10 @@ function onTimelineJump(key: string) {
           <h1 class="text-2xl font-semibold text-tx-main">{{ t('views.gallery.title') }}</h1>
         </div>
         <div class="flex flex-wrap gap-2">
-          <AppButton size="sm" @click="gridRef?.scanMedia()">🔄 {{ t('views.gallery.scan') }}</AppButton>
-          <AppButton size="sm" @click="gridRef?.filterByType('all')">📋 {{ t('views.gallery.filterAll') }}</AppButton>
-          <AppButton size="sm" @click="gridRef?.filterByType('image')">🖼️ {{ t('views.gallery.filterImages') }}</AppButton>
-          <AppButton size="sm" @click="gridRef?.filterByType('video')">🎬 {{ t('views.gallery.filterVideos') }}</AppButton>
+          <AppButton size="sm" @click="gridRef?.scanMedia()" :label="t('views.gallery.scan')">🔄 {{ t('views.gallery.scan') }}</AppButton>
+          <AppButton size="sm" @click="gridRef?.filterByType('all')" :label="t('views.gallery.filterAll')">📋 {{ t('views.gallery.filterAll') }}</AppButton>
+          <AppButton size="sm" @click="gridRef?.filterByType('image')" :label="t('views.gallery.filterImages')">🖼️ {{ t('views.gallery.filterImages') }}</AppButton>
+          <AppButton size="sm" @click="gridRef?.filterByType('video')" :label="t('views.gallery.filterVideos')">🎬 {{ t('views.gallery.filterVideos') }}</AppButton>
         </div>
       </div>
     </header>
