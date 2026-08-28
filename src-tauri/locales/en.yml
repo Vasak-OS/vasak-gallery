@@ -98,3 +98,7 @@ notifications:
   copyError: 'Could not copy: {0}'
   wallpaperError: 'Could not change the desktop background: {0}'
   openError: 'Could not open: {0}'
+windowControls:
+  minimize: Minimize
+  maximize: Maximize
+  close: Close
