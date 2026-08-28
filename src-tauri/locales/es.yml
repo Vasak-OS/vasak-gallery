@@ -98,3 +98,7 @@ notifications:
   copyError: 'No se pudo copiar: {0}'
   wallpaperError: 'No se pudo cambiar el fondo de escritorio: {0}'
   openError: 'No se pudo abrir: {0}'
+windowControls:
+  minimize: Minimizar
+  maximize: Maximizar
+  close: Cerrar
