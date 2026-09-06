@@ -2,7 +2,6 @@
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useConfigStore } from '@vasakgroup/plugin-config-manager';
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
-import type { Store } from 'pinia';
 import { onMounted, onUnmounted, type Ref, ref } from 'vue';
 import { RouterView } from 'vue-router';
 import TopBarComponent from '@/components/topbar/TopBarComponent.vue';
@@ -16,10 +15,7 @@ const appIcon = useReactiveIcon('photo');
 
 onMounted(async () => {
 	try {
-		const configStore = useConfigStore() as Store<
-			'config',
-			{ config: any; loadConfig: () => Promise<void> }
-		>;
+		const configStore = useConfigStore();
 		await configStore.loadConfig();
 
 		unListenConfig.value = await listen('config-changed', async () => {
