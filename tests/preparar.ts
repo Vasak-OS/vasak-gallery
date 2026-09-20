@@ -10,6 +10,7 @@ import { GlobalRegistrator } from '@happy-dom/global-registrator';
 import { mock } from 'bun:test';
 import './complemento-vue';
 import {
+	convertFileSrc,
 	getCurrentWindow,
 	getIconSource,
 	getSymbolSource,
@@ -30,7 +31,7 @@ const eventos = await import('@tauri-apps/api/event');
 const configuracion = await import('@vasakgroup/plugin-config-manager');
 const iconos = await import('@vasakgroup/plugin-vicons');
 
-mock.module('@tauri-apps/api/core', () => ({ ...core, invoke }));
+mock.module('@tauri-apps/api/core', () => ({ ...core, convertFileSrc, invoke }));
 mock.module('@tauri-apps/api/event', () => ({ ...eventos, listen }));
 mock.module('@tauri-apps/api/window', () => ({ getCurrentWindow }));
 mock.module('@vasakgroup/tauri-plugin-i18n', () => ({ useI18n }));

@@ -43,8 +43,13 @@ const typeBadge = computed(() => {
 </script>
 
 <template>
+  <!-- La tarjeta se marca sola con el id del elemento que muestra. La rejilla
+       lo busca con `closest('[data-media-id]')` para saber sobre cuál se hizo
+       clic derecho; antes se lo pasaba desde afuera y llegaba acá por caída de
+       atributos, que es algo que no estaba escrito en ningún lado. -->
   <button
     type="button"
+    :data-media-id="item.id"
     class="group cursor-pointer rounded-corner p-2 text-left transition-transform duration-200 hover:-translate-y-1"
     @click="emit('click', item)"
     @mouseenter="isHovered = true"

@@ -2,6 +2,19 @@
 /**
  * Botón reutilizable con variantes del sistema de diseño Vasak.
  */
+const emit = defineEmits<{
+	/**
+	 * El clic del botón.
+	 *
+	 * Se declara en vez de dejarlo caer sobre el `<button>` de adentro. Caía y
+	 * funcionaba, pero no estaba escrito en ningún lado: quien lo escribía no
+	 * tenía forma de saber si llegaba, y con `strictTemplates` pasa a ser un
+	 * error. Declarado, Vue lo saca de los atributos, así que el `@click` de
+	 * abajo no es opcional: sin él el botón deja de responder.
+	 */
+	click: [evento: MouseEvent];
+}>();
+
 withDefaults(
 	defineProps<{
 		/**
@@ -26,6 +39,7 @@ withDefaults(
   <button
     :disabled="disabled"
     :aria-label="label"
+    @click="emit('click', $event)"
     class="inline-flex items-center justify-center gap-1.5 rounded-corner border font-medium transition
            disabled:cursor-not-allowed disabled:opacity-50"
     :class="{
