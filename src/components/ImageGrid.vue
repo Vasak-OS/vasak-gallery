@@ -274,7 +274,6 @@ defineExpose({ loadImages, scanMedia, filterByType, sortBy, scrollToMonth });
           <MediaCard
             v-for="item in group.items"
             :key="item.id"
-            :data-media-id="item.id"
             :item="item"
             @click="emit('image-clicked', { item, items: images })"
           />

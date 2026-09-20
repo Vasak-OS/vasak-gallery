@@ -35,6 +35,17 @@ export function useConfigStore() {
 	return { config: configuracion, loadConfig: async () => {} };
 }
 
+/**
+ * La ruta de un archivo local como la sirve el protocolo de Tauri.
+ *
+ * El prefijo no es el real —lo arma Tauri con el identificador de la ventana—,
+ * pero lo que las pruebas miran es que la ruta *pase por acá*: cargarla cruda la
+ * bloquea la política de contenido.
+ */
+export function convertFileSrc(ruta: string) {
+	return `asset://localhost/${encodeURIComponent(ruta)}`;
+}
+
 export async function invoke(_comando: string) {
 	return undefined;
 }
