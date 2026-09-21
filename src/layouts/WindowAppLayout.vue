@@ -2,16 +2,15 @@
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useConfigStore } from '@vasakgroup/plugin-config-manager';
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
-import { WindowFrame } from '@vasakgroup/vue-libvasak';
+import { ThemeIcon, ToastArea, WindowFrame } from '@vasakgroup/vue-libvasak';
 import { onMounted, onUnmounted, type Ref, ref } from 'vue';
 import { RouterView } from 'vue-router';
-import NotificationToast from '@/components/ui/NotificationToast.vue';
-import { useReactiveIcon } from '@/composables/useReactiveIcon';
+import { useNotification } from '@/composables/useNotification';
 
 const { t } = useI18n();
 
 let unListenConfig: Ref<UnlistenFn | null> = ref(null);
-const appIcon = useReactiveIcon('photo');
+const { notifications } = useNotification();
 
 onMounted(async () => {
 	try {
@@ -40,7 +39,7 @@ onUnmounted(() => {
     :maximize-label="t('windowControls.maximize')"
     :close-label="t('windowControls.close')">
     <template #identidad>
-      <img :src="appIcon" :alt="t('views.app.iconAlt')" class="h-6 w-6" />
+      <ThemeIcon name="photo" :size="24" :alt="t('views.app.iconAlt')" />
     </template>
 
     <!-- El nombre al medio de la ventana entera. Estaba centrado con un tercer
@@ -55,6 +54,8 @@ onUnmounted(() => {
     <div class="flex min-h-0 min-w-0 flex-1 p-1">
       <RouterView class="min-h-0 flex-1" />
     </div>
-    <NotificationToast />
+    <!-- Abajo al centro y no en la esquina: en una ventana de ver fotos, la
+         esquina compite con los controles del visor. -->
+    <ToastArea :toasts="notifications" position="bottom-center" />
   </WindowFrame>
 </template>

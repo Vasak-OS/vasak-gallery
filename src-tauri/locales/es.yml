@@ -46,6 +46,7 @@ components:
   mediaCard:
     loadError: Error al cargar
   lightbox:
+    label: Viendo {0}
     close: Cerrar
     prev: Anterior
     next: Siguiente
