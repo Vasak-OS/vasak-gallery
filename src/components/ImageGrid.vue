@@ -2,10 +2,10 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
+import { AlertMessage, EmptyState, LoadingState } from '@vasakgroup/vue-libvasak';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import MediaCard from '@/components/ui/MediaCard.vue';
-import StatePanel from '@/components/ui/StatePanel.vue';
 import { useGalleryContextMenu } from '@/composables/useGalleryContextMenu';
 import { useMonthLabels } from '@/composables/useMonthLabels';
 import type {
@@ -230,27 +230,23 @@ defineExpose({ loadImages, scanMedia, filterByType, sortBy, scrollToMonth });
 
 <template>
   <div class="block min-h-full" @contextmenu="handleContextMenu">
-    <StatePanel v-if="isLoading" type="loading" :message="t('components.imageGrid.loading')" />
+    <LoadingState v-if="isLoading" :label="t('components.imageGrid.loading')" />
 
-    <StatePanel v-else-if="error" type="error" :message="error">
-      <template #action>
-        <AppButton @click="loadImages()">{{ t('common.retry') }}</AppButton>
-      </template>
-    </StatePanel>
+    <!-- El aviso pone el color y el rol; lo que lo centra en el hueco de la
+         grilla es este contenedor, porque `AlertMessage` es el aviso que va
+         dentro de una sección y no sabe nada de dónde lo pongan. -->
+    <div v-else-if="error" class="flex min-h-64 flex-col items-center justify-center gap-4 p-8">
+      <AlertMessage tone="error" icon="dialog-error">{{ error }}</AlertMessage>
+      <AppButton @click="loadImages()">{{ t('common.retry') }}</AppButton>
+    </div>
 
-    <StatePanel
-      v-else-if="isScanning && images.length === 0"
-      type="loading"
-      :message="scanningMessage"
-    />
+    <LoadingState v-else-if="isScanning && images.length === 0" :label="scanningMessage" />
 
-    <StatePanel v-else-if="images.length === 0" type="empty" :message="t('components.imageGrid.empty')">
-      <template #action>
-        <AppButton v-if="!isScanning" variant="primary" @click="scanMedia">
-          {{ t('components.imageGrid.scanNow') }}
-        </AppButton>
-      </template>
-    </StatePanel>
+    <EmptyState v-else-if="images.length === 0" :title="t('components.imageGrid.empty')" icon="photo">
+      <AppButton v-if="!isScanning" variant="primary" @click="scanMedia">
+        {{ t('components.imageGrid.scanNow') }}
+      </AppButton>
+    </EmptyState>
 
     <template v-else>
       <section

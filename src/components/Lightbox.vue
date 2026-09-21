@@ -2,9 +2,27 @@
 /** biome-ignore-all lint/style/useVueMultiWordComponentNames: la regla existe para
  * que el nombre de un componente no choque con un elemento HTML. Ninguno de estos
  * lo es, y renombrarlo obligaría a tocar cada uso sin ganar nada. */
+/**
+ * La foto o el video, a pantalla completa.
+ *
+ * **Es un diálogo**, y lo dibuja la librería: el foco entra al abrirlo, el Tab
+ * da la vuelta adentro en vez de seguir por la grilla de atrás, Escape lo
+ * cierra y al cerrarse el foco vuelve a la miniatura de la que salió. Antes era
+ * un `div` con un velo: no se anunciaba como nada, el foco nunca entraba, y
+ * salir con el teclado obligaba a tabular por las trescientas miniaturas que
+ * quedaban debajo.
+ *
+ * `size="full"` es para que la librería no traiga su caja centrada —ancho
+ * máximo, borde, relleno—: acá el diálogo **es** la pantalla, y el fondo lo
+ * pone la clase que se le pasa.
+ *
+ * El comentario va acá y no arriba de la raíz de la plantilla: un comentario
+ * ahí la convierte en un fragmento y se pierde la raíz.
+ */
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
+import { Dialog, DialogContent } from '@vasakgroup/vue-libvasak';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useGalleryContextMenu } from '@/composables/useGalleryContextMenu';
 import type { LightboxProps, MediaItem } from '@/types/gallery';
@@ -213,12 +231,16 @@ function resetControlsTimer() {
 
 // ─── Keyboard & lifecycle ─────────────────────────────────────────────────────
 
+/**
+ * Las teclas que son del visor y no del diálogo.
+ *
+ * Escape **no** está acá: lo cierra `DialogContent`, que además devuelve el
+ * foco a la miniatura de la que se abrió. Atenderlo en los dos lugares no
+ * rompía nada visible, pero pedía cerrar dos veces por cada tecla.
+ */
 function handleKeydown(e: KeyboardEvent) {
 	if (!props.isOpen) return;
 	switch (e.key) {
-		case 'Escape':
-			emit('close');
-			break;
 		case 'ArrowLeft':
 			navigatePrev();
 			break;
@@ -296,17 +318,27 @@ function handleContextMenu(event: MouseEvent) {
 const videoError = computed(() => (videoErrorKey.value ? t(videoErrorKey.value) : null));
 
 const fileName = computed(() => props.currentItem?.original_path.split('/').pop() ?? '');
+
+/**
+ * Cómo se llama el diálogo.
+ *
+ * No hay `DialogTitle` visible —el nombre del archivo se dibuja en una píldora
+ * con su propia forma, y el título de la librería trae la suya—, así que el
+ * nombre va por `aria-label`. Sale del mismo `fileName` que se ve, que es lo
+ * que evita que uno se quede viejo respecto del otro.
+ */
+const dialogLabel = computed(() => t('components.lightbox.label').replace('{0}', fileName.value));
 const mediaSrc = computed(() =>
 	props.currentItem ? convertFileSrc(props.currentItem.original_path) : ''
 );
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition name="lightbox">
+  <Dialog :open="isOpen && currentItem !== null" @update:open="emit('close')">
+    <DialogContent size="full" :ariaLabel="dialogLabel" class="bg-ui-bg/80 backdrop-blur-sm">
       <div
-        v-if="isOpen && currentItem"
-        class="fixed inset-0 z-9999 flex items-center justify-center bg-ui-bg/80 rounded-corner backdrop-blur-sm"
+        v-if="currentItem"
+        class="relative flex h-full w-full items-center justify-center"
         @mousemove="currentItem.media_type === 'video' ? resetControlsTimer() : undefined"
         @contextmenu="handleContextMenu"
       >
@@ -534,20 +566,13 @@ const mediaSrc = computed(() =>
         </div>
 
       </div>
-    </Transition>
-  </Teleport>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <style scoped>
-/* ── Lightbox transition ── */
-.lightbox-enter-active,
-.lightbox-leave-active {
-  transition: opacity 0.2s ease;
-}
-.lightbox-enter-from,
-.lightbox-leave-to {
-  opacity: 0;
-}
+/* La entrada y la salida del visor entero las hace `DialogContent`, que ya
+   funde el velo: dos transiciones encima de lo mismo se peleaban el `opacity`. */
 
 /* ── Controls fade ── */
 .controls-enter-active,

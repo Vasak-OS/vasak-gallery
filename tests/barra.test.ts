@@ -11,10 +11,15 @@
  */
 
 import { afterEach, describe, expect, test } from 'bun:test';
-import { AppBar, WindowControls, WindowFrame } from '@vasakgroup/vue-libvasak';
+import {
+	AppBar,
+	olvidarLosIconosDelTema,
+	ToastArea,
+	WindowControls,
+	WindowFrame,
+} from '@vasakgroup/vue-libvasak';
 import { mount, type VueWrapper } from '@vue/test-utils';
-import { h } from 'vue';
-import NotificationToast from '@/components/ui/NotificationToast.vue';
+import { h, nextTick } from 'vue';
 import WindowAppLayout from '@/layouts/WindowAppLayout.vue';
 import { olvidarTodo } from './dobles';
 
@@ -50,6 +55,10 @@ afterEach(() => {
 	vista?.unmount();
 	vista = null;
 	olvidarTodo();
+	// Lo que el tema resolvió se memoriza en el módulo de la librería, y un
+	// módulo se comparte entre archivos de prueba: sin vaciarlo, el primero que
+	// pida un icono sin tema preparado deja guardado que no hay ninguno.
+	olvidarLosIconosDelTema();
 });
 
 describe('la ventana', () => {
@@ -75,10 +84,15 @@ describe('la ventana', () => {
 });
 
 describe('lo que va en la barra', () => {
-	test('el icono va en `identidad`', () => {
+	test('el icono va en `identidad`', async () => {
 		// En el contenido de la barra se desplazaría con lo demás cuando queda a
 		// un costado: `identidad` es la única zona que no scrollea.
+		//
+		// El icono lo dibuja `ThemeIcon`, que lo resuelve contra el tema: hasta
+		// que vuelve deja un hueco del tamaño del icono y no un `img`.
 		const dentro = ranura(abrir(), 'identidad');
+		await new Promise((listo) => setTimeout(listo, 0));
+		await nextTick();
 
 		expect(dentro?.find('img').attributes('alt')).toBe('views.app.iconAlt');
 	});
@@ -108,15 +122,14 @@ describe('el contenido', () => {
 		expect(abrir().find('.vista').exists()).toBe(true);
 	});
 
-	test('y los avisos siguen colgando de la ventana', () => {
-		// `NotificationToast` va **dentro** del marco y no al lado: fuera de él
-		// se apoyaría en el documento, que con la ventana redondeada le
-		// pintaría las esquinas. Al envolver todo en el marco es justo lo que se
-		// puede quedar afuera sin que nada se rompa.
-		const ventana = abrir();
-		const marco = ventana.findComponent(WindowFrame).element;
-		const aviso = ventana.findComponent(NotificationToast).element;
+	test('y la pila de avisos es la de la librería, apilando abajo al centro', () => {
+		// Abajo al centro y no en la esquina, que es lo que la librería hace por
+		// omisión: en una ventana de ver fotos, la esquina compite con los
+		// controles del visor. Si la posición no llegara, los avisos se mudarían
+		// de lugar sin que nada falle.
+		const pila = abrir().findComponent(ToastArea);
 
-		expect(marco.contains(aviso)).toBe(true);
+		expect(pila.exists()).toBe(true);
+		expect(pila.props('position')).toBe('bottom-center');
 	});
 });

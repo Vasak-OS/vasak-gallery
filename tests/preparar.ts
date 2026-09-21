@@ -16,9 +16,12 @@ import {
 	getSymbolSource,
 	invoke,
 	listen,
+	open,
 	readConfig,
 	useConfigStore,
+	useContextMenu,
 	useI18n,
+	writeConfig,
 } from './dobles';
 
 GlobalRegistrator.register();
@@ -30,6 +33,8 @@ const core = await import('@tauri-apps/api/core');
 const eventos = await import('@tauri-apps/api/event');
 const configuracion = await import('@vasakgroup/plugin-config-manager');
 const iconos = await import('@vasakgroup/plugin-vicons');
+const consola = await import('@tauri-apps/plugin-shell');
+const menu = await import('@vasakgroup/plugin-vsk-contextual-menu');
 
 mock.module('@tauri-apps/api/core', () => ({ ...core, convertFileSrc, invoke }));
 mock.module('@tauri-apps/api/event', () => ({ ...eventos, listen }));
@@ -40,4 +45,7 @@ mock.module('@vasakgroup/plugin-config-manager', () => ({
 	...configuracion,
 	useConfigStore,
 	readConfig,
+	writeConfig,
 }));
+mock.module('@tauri-apps/plugin-shell', () => ({ ...consola, open }));
+mock.module('@vasakgroup/plugin-vsk-contextual-menu', () => ({ ...menu, useContextMenu }));
