@@ -35,6 +35,9 @@ components:
     sort: Sort
     sortNewest: Newest first
     sortOldest: Oldest first
+  timeline:
+    label: Timeline
+    monthLabel: '{0} {1}, {2} items'
   imageGrid:
     loading: Loading images…
     loadError: Failed to load the images
