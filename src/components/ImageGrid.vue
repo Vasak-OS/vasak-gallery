@@ -2,8 +2,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { AlertMessage, EmptyState, LoadingState } from '@vasakgroup/vue-libvasak';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import MediaCard from '@/components/ui/MediaCard.vue';
 import { useGalleryContextMenu } from '@/composables/useGalleryContextMenu';

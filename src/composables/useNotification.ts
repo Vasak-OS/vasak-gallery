@@ -16,11 +16,7 @@ const notifications = ref<AvisoTransitorio[]>([]);
 let nextId = 0;
 
 export function useNotification() {
-	function notify(
-		message: string,
-		tone: AvisoTransitorio['tone'] = 'success',
-		timeout = 2500
-	) {
+	function notify(message: string, tone: AvisoTransitorio['tone'] = 'success', timeout = 2500) {
 		const id = nextId++;
 		notifications.value.push({ id, message, tone });
 		setTimeout(() => {
