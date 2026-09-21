@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
 import { computed, ref } from 'vue';
 import { useMonthLabels } from '@/composables/useMonthLabels';
 import type { TimelineEntry } from '@/types/gallery';
@@ -10,9 +11,33 @@ const props = defineProps<{
 
 const emit = defineEmits<{ jump: [key: string] }>();
 
-const { monthShort } = useMonthLabels();
+const { monthLong, monthShort } = useMonthLabels();
+const { t } = useI18n();
 
 const isHovered = ref(false);
+const tieneFoco = ref(false);
+
+/**
+ * Si la barra está abierta, por el ratón **o por el teclado**.
+ *
+ * Antes dependía sólo de `@mouseenter`, así que con el teclado no se abría
+ * nunca: aunque el Tab llegara a un mes, su etiqueta seguía en `opacity-0` y no
+ * había forma de saber a cuál se había llegado.
+ */
+const desplegada = computed(() => isHovered.value || tieneFoco.value);
+
+/**
+ * Cómo se anuncia un mes: «Septiembre de 2026, 42 elementos».
+ *
+ * Lo que se ve es el mes abreviado y un número suelto, que fuera de contexto no
+ * dice de qué año es ni de qué son esos elementos. El nombre accesible lo dice
+ * entero, que es lo que hace que la lista se pueda recorrer sin ver la pantalla.
+ */
+const nombreDelMes = (entry: TimelineEntry): string =>
+	t('components.timeline.monthLabel')
+		.replace('{0}', monthLong(entry.month))
+		.replace('{1}', String(entry.year))
+		.replace('{2}', String(entry.count));
 
 interface YearGroup {
 	year: number;
@@ -35,14 +60,21 @@ const grouped = computed<YearGroup[]>(() => {
 
 <template>
   <!--
-    El aside NO tiene overflow — así los tooltips pueden salir hacia la izquierda.
-    El scroll interno lo maneja el div interior.
+    Un `nav` con nombre: es una forma de moverse por la galería, y así un lector
+    de pantalla la ofrece como tal en vez de leerla como una lista de textos
+    sueltos.
+
+    No tiene overflow — así los globos pueden salir hacia la izquierda. El
+    desplazamiento interno lo maneja el div de adentro.
   -->
-  <aside
+  <nav
     class="relative flex shrink-0 flex-col border-l border-ui-border bg-ui-bg/60 backdrop-blur-sm transition-[width] duration-200"
-    :class="isHovered ? 'w-28' : 'w-7'"
+    :class="desplegada ? 'w-28' : 'w-7'"
+    :aria-label="t('components.timeline.label')"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
+    @focusin="tieneFoco = true"
+    @focusout="tieneFoco = false"
   >
     <!-- Línea vertical -->
     <div class="pointer-events-none absolute right-3 top-0 h-full w-px bg-ui-border" />
@@ -54,19 +86,28 @@ const grouped = computed<YearGroup[]>(() => {
         <!-- Año -->
         <div class="relative mb-1 flex w-full items-center justify-end pr-6">
           <div class="absolute right-[9px] h-2 w-2 rounded-full border-2 border-primary bg-ui-bg" />
-          <span
+          <h2
             class="mr-8 whitespace-nowrap text-xs font-bold text-tx-main transition-opacity duration-150"
-            :class="isHovered ? 'opacity-100' : 'opacity-0'"
+            :class="desplegada ? 'opacity-100' : 'opacity-0'"
           >
             {{ group.year }}
-          </span>
+          </h2>
         </div>
 
         <!-- Meses -->
-        <div
+        <!--
+          Un botón y no un `div` con `@click`: el Tab lo alcanza, Enter y la
+          barra espaciadora lo activan, y un lector de pantalla lo anuncia como
+          algo que se puede apretar. Las tres cosas salen de usar el elemento
+          que corresponde, y ninguna de ponerle un `tabindex` al `div`.
+        -->
+        <button
           v-for="entry in group.months"
           :key="entry.key"
-          class="group/month relative flex w-full cursor-pointer items-center justify-end py-[3px] pr-6 transition-colors hover:bg-ui-surface/40"
+          type="button"
+          :aria-label="nombreDelMes(entry)"
+          :aria-current="activeKey === entry.key ? 'true' : undefined"
+          class="group/month relative flex w-full cursor-pointer items-center justify-end py-[3px] pr-6 transition-colors hover:bg-ui-surface/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
           @click="emit('jump', entry.key)"
         >
           <!-- Tick -->
@@ -81,7 +122,7 @@ const grouped = computed<YearGroup[]>(() => {
           <span
             class="mr-8 whitespace-nowrap text-xs transition-opacity duration-150"
             :class="[
-              isHovered ? 'opacity-100' : 'opacity-0',
+              desplegada ? 'opacity-100' : 'opacity-0',
               activeKey === entry.key ? 'font-semibold text-primary' : 'text-tx-muted',
             ]"
           >
@@ -92,7 +133,7 @@ const grouped = computed<YearGroup[]>(() => {
           <!-- Tooltip colapsado: sale a la izquierda, centrado en el tick -->
           <Transition name="tooltip">
             <div
-              v-if="!isHovered"
+              v-if="!desplegada"
               class="pointer-events-none absolute right-full top-1/2 z-100 mr-3 hidden -translate-y-1/2 whitespace-nowrap rounded-corner border border-ui-border bg-ui-bg px-2 py-1 text-xs text-tx-main shadow-lg group-hover/month:block"
             >
               {{ monthShort(entry.month) }} {{ entry.year }}
@@ -102,11 +143,11 @@ const grouped = computed<YearGroup[]>(() => {
               <span class="absolute right-[-4px] top-1/2 -translate-y-1/2 border-4 border-transparent border-l-ui-bg" />
             </div>
           </Transition>
-        </div>
+        </button>
 
       </template>
     </div>
-  </aside>
+  </nav>
 </template>
 
 <style scoped>

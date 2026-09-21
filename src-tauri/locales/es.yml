@@ -35,6 +35,9 @@ components:
     sort: Ordenar
     sortNewest: Más recientes primero
     sortOldest: Más antiguos primero
+  timeline:
+    label: Línea de tiempo
+    monthLabel: '{0} de {1}, {2} elementos'
   imageGrid:
     loading: Cargando imágenes…
     loadError: Error al cargar las imágenes
