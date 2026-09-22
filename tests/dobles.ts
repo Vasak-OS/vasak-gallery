@@ -94,16 +94,45 @@ export function useContextMenu() {
 	return { showMenu: async () => {} };
 }
 
-export async function listen(_nombre: string, _manejador: () => unknown) {
-	return () => {};
+/** Los oyentes registrados por evento, para poder dispararlos desde una prueba. */
+const listeners = new Map<string, Set<(evento: { payload: unknown }) => unknown>>();
+
+export async function listen(nombre: string, manejador: (evento: { payload: unknown }) => unknown) {
+	const suyos = listeners.get(nombre) ?? new Set();
+	suyos.add(manejador);
+	listeners.set(nombre, suyos);
+	return () => {
+		suyos.delete(manejador);
+	};
 }
 
-export async function getIconSource(_nombre: string) {
-	return 'icono.png';
+/** Dispara un evento del backend y espera a que lo atiendan. */
+export async function emit(nombre: string, payload: unknown = null) {
+	for (const manejador of [...(listeners.get(nombre) ?? [])]) {
+		await manejador({ payload });
+	}
 }
 
-export async function getSymbolSource(_nombre: string) {
-	return 'simbolo.png';
+/**
+ * Lo que el tema contesta para un nombre, cuando la prueba lo dice.
+ *
+ * Devolvían una ruta fija, con lo cual el icono se dibujaba pero no se podía
+ * comprobar **cuál** era ni si había cambiado: un cambio de tema salía
+ * indistinguible de ninguno.
+ */
+const themeIcons = new Map<string, string>();
+
+/** Pone —o cambia— lo que el tema devuelve para un nombre. */
+export function setThemeIcon(nombre: string, fuente: string) {
+	themeIcons.set(nombre, fuente);
+}
+
+export async function getIconSource(nombre: string) {
+	return themeIcons.get(nombre) ?? 'icono.png';
+}
+
+export async function getSymbolSource(nombre: string) {
+	return themeIcons.get(nombre) ?? 'simbolo.png';
 }
 
 export function olvidarTodo() {
@@ -111,4 +140,6 @@ export function olvidarTodo() {
 	configuracion = {};
 	respuestas.clear();
 	traducciones.clear();
+	listeners.clear();
+	themeIcons.clear();
 }
