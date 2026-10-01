@@ -65,7 +65,6 @@ function onTimelineJump(key: string) {
           icon="x-office-calendar"
           :label="t('views.gallery.timeline')"
           :pressed="timelineOpen"
-          data-timeline-toggle
           @click="timelineOpen = !timelineOpen"
         />
       </template>

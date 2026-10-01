@@ -51,7 +51,7 @@ async function mountView() {
 }
 
 const toggle = (view: VueWrapper) =>
-	view.findAllComponents(ActionButton).find((b) => b.attributes('data-timeline-toggle') !== undefined);
+	view.findAllComponents(ActionButton).find((b) => b.props('icon') === 'x-office-calendar');
 
 describe('la cabecera', () => {
 	test('es la de la librería, con la sección arriba y el título grande', async () => {
