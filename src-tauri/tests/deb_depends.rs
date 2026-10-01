@@ -12,8 +12,13 @@
 //! bandeja— ni la segunda, porque no reproduce nada. Agregarlas «por si acaso»
 //! ataría el `.deb` a dos paquetes que no hacen falta acá.
 //!
-//! `sqlite3`, `dbus` y los cuatro gstreamer se quedan: son servicios y códecs
-//! que se usan sin enlazarlos.
+//! `dbus` y los cuatro gstreamer se quedan: son el servicio y los códecs que se
+//! usan sin enlazarlos. `sqlite3` se fue: es el programa de la línea de
+//! comandos, y la galería enlaza la biblioteca (`libsqlite3-0`) sin llamar
+//! nunca al programa. Entraron `ffmpeg`, que saca el cuadro de la miniatura de
+//! cada vídeo (`indexer/thumbnail.rs`), y `xdg-utils`, que es por donde «Abrir
+//! con reproductor del sistema» llega al programa de la persona: los dos se
+//! ejecutan, así que ningún `readelf` los muestra.
 //!
 //! Lo que se declara se audita con `readelf -d … | grep NEEDED`, nunca con
 //! `ldd`. Estas pruebas no reemplazan esa auditoría: cuidan que no vuelva a
@@ -40,7 +45,7 @@ fn deb_depends() -> Vec<String> {
 }
 
 #[test]
-fn las_dependencias_del_deb_tienen_nombre_de_debian() {
+fn deb_depends_use_debian_names() {
     for name in deb_depends() {
         // Los nombres de paquete de Debian: minúsculas, dígitos y `+-.`.
         let valid = name.len() >= 2
@@ -64,7 +69,7 @@ fn las_dependencias_del_deb_tienen_nombre_de_debian() {
 }
 
 #[test]
-fn las_dependencias_del_deb_no_se_repiten() {
+fn deb_depends_have_no_duplicates() {
     let depends = deb_depends();
     let mut seen = std::collections::BTreeSet::new();
     for name in &depends {
@@ -74,7 +79,7 @@ fn las_dependencias_del_deb_no_se_repiten() {
 
 /// El binario enlaza libsoup 3 y nada más: la 2.4 viene de la plantilla.
 #[test]
-fn no_viajan_las_dos_generaciones_de_libsoup() {
+fn only_one_libsoup_generation() {
     let depends = deb_depends();
     assert!(
         !depends.iter().any(|n| n == "libsoup2.4-1"),
@@ -86,7 +91,7 @@ fn no_viajan_las_dos_generaciones_de_libsoup() {
 /// está declarado. Declararlo también ataba el `.deb` a un paquete que no hace
 /// falta para que la aplicación arranque.
 #[test]
-fn no_se_declara_pango_que_no_se_enlaza() {
+fn pango_is_not_declared() {
     let depends = deb_depends();
     assert!(
         !depends.iter().any(|n| n == "libpango-1.0-0"),
@@ -100,9 +105,9 @@ fn no_se_declara_pango_que_no_se_enlaza() {
 /// aplicaciones, y va acá para que una lista copiada de otra no se cuelgue sin
 /// que nadie la revise.
 #[test]
-fn no_se_declara_lo_que_esta_aplicacion_no_usa() {
+fn unused_packages_are_not_declared() {
     let depends = deb_depends();
-    for (package, porque) in [
+    for (package, reason) in [
         (
             "libgtk-layer-shell0",
             "no hay ventana en la capa del compositor",
@@ -111,7 +116,7 @@ fn no_se_declara_lo_que_esta_aplicacion_no_usa() {
     ] {
         assert!(
             !depends.iter().any(|n| n == package),
-            "{package} no va en esta lista: {porque}"
+            "{package} no va en esta lista: {reason}"
         );
     }
 }
@@ -120,7 +125,7 @@ fn no_se_declara_lo_que_esta_aplicacion_no_usa() {
 /// sonames de fuera de la base del sistema, ni uno más. Si alguno deja de
 /// enlazarse, se saca de la lista y de acá a la vez.
 #[test]
-fn estan_las_bibliotecas_que_el_binario_enlaza() {
+fn linked_libraries_are_declared() {
     let depends = deb_depends();
     for (soname, package) in [
         ("libcairo.so.2", "libcairo2"),
@@ -147,10 +152,36 @@ fn estan_las_bibliotecas_que_el_binario_enlaza() {
 
 /// El índice de la galería y las miniaturas se leen de un SQLite.
 #[test]
-fn esta_la_biblioteca_del_indice() {
+fn index_library_is_declared() {
     let depends = deb_depends();
     assert!(
         depends.iter().any(|n| n == "libsqlite3-0"),
         "el binario enlaza libsqlite3.so.0: sin libsqlite3-0 el .deb no arranca"
+    );
+}
+
+/// Los dos programas que la galería ejecuta. No aparecen en ningún `NEEDED`
+/// porque no se enlazan: se llaman.
+#[test]
+fn executed_programs_are_declared() {
+    let depends = deb_depends();
+    for (package, reason) in [
+        ("ffmpeg", "saca el cuadro de la miniatura de cada vídeo"),
+        ("xdg-utils", "«Abrir con reproductor del sistema» pasa por xdg-open"),
+    ] {
+        assert!(
+            depends.iter().any(|n| n == package),
+            "falta {package}: {reason}"
+        );
+    }
+}
+
+/// La biblioteca de SQLite sí, su programa no: nadie lo llama.
+#[test]
+fn sqlite_cli_is_not_declared() {
+    let depends = deb_depends();
+    assert!(
+        !depends.iter().any(|n| n == "sqlite3"),
+        "sqlite3 es el programa de la línea de comandos: la galería sólo enlaza libsqlite3-0"
     );
 }

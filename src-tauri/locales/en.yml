@@ -17,6 +17,7 @@ views:
     filterAll: All
     filterImages: Images
     filterVideos: Videos
+    timeline: Timeline
 
 components:
   contextMenu:
@@ -48,6 +49,7 @@ components:
     itemCount: '{0} items'
   mediaCard:
     loadError: Failed to load
+    video: Video
   lightbox:
     label: Viewing {0}
     close: Close
@@ -58,6 +60,8 @@ components:
     pause: Pause
     mute: Mute
     unmute: Unmute
+    seek: Video position
+    volume: Volume
     videoUnsupported: The WebView cannot play this video
     openWithSystem: Open with the system player
     videoErrors:
