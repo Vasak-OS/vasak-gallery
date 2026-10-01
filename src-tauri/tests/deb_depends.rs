@@ -167,7 +167,10 @@ fn executed_programs_are_declared() {
     let depends = deb_depends();
     for (package, reason) in [
         ("ffmpeg", "saca el cuadro de la miniatura de cada vídeo"),
-        ("xdg-utils", "«Abrir con reproductor del sistema» pasa por xdg-open"),
+        (
+            "xdg-utils",
+            "«Abrir con reproductor del sistema» pasa por xdg-open",
+        ),
     ] {
         assert!(
             depends.iter().any(|n| n == package),
