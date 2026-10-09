@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
+import { Badge, Skeleton, ThemeIcon } from '@vasakgroup/vue-libvasak';
 import { computed, ref } from 'vue';
 import type { MediaItem } from '@/types/gallery';
 
@@ -33,30 +34,36 @@ const formattedDate = computed(() =>
 	})
 );
 
-// Badge de tipo
-const typeBadge = computed(() => {
-	if (props.item.media_type === 'video') return '🎬';
-	if (ext.value === 'gif') return 'GIF';
-	if (ext.value === 'webp') return 'WebP';
-	return null; // imágenes normales no muestran badge
+/**
+ * La insignia de tipo, al pasar el ratón.
+ *
+ * El vídeo era un 🎬 escrito, que se dibuja con la fuente de emojis y no con el
+ * tema: ahora es el icono `video-x-generic`. Las imágenes comunes no llevan.
+ */
+const typeBadge = computed<{ icon: string } | { text: string } | null>(() => {
+	if (props.item.media_type === 'video') return { icon: 'video-x-generic' };
+	if (ext.value === 'gif') return { text: 'GIF' };
+	if (ext.value === 'webp') return { text: 'WebP' };
+	return null;
 });
 </script>
 
 <template>
-  <!-- La tarjeta se marca sola con el id del elemento que muestra. La rejilla
-       lo busca con `closest('[data-media-id]')` para saber sobre cuál se hizo
-       clic derecho; antes se lo pasaba desde afuera y llegaba acá por caída de
-       atributos, que es algo que no estaba escrito en ningún lado. -->
   <button
     type="button"
     :data-media-id="item.id"
-    class="group cursor-pointer rounded-corner p-2 text-left transition-transform duration-200 hover:-translate-y-1"
+    class="group cursor-pointer rounded-corner-m p-2 text-left"
     @click="emit('click', item)"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
-    <!-- Thumbnail -->
-    <div class="relative aspect-square overflow-hidden rounded-corner border border-ui-border bg-ui-surface/80 shadow-lg shadow-black/10">
+    <!-- La tarjeta se marca sola con el id del elemento que muestra. La rejilla
+         lo busca con `closest('[data-media-id]')` para saber sobre cuál se hizo
+         clic derecho; antes se lo pasaba desde afuera y llegaba acá por caída de
+         atributos, que es algo que no estaba escrito en ningún lado. -->
+    <!-- Thumbnail. Ya no sube al pasar el ratón: en Once UI lo que reacciona
+         es el velo, no la posición. -->
+    <div class="relative aspect-square overflow-hidden rounded-corner-m border border-ui-line bg-ui-surface/80 shadow-surface-s">
       <img
         :src="imgSrc"
         :alt="item.original_path"
@@ -70,32 +77,30 @@ const typeBadge = computed(() => {
 
       <!-- Hover overlay -->
       <div class="absolute inset-0 flex items-end justify-end bg-linear-to-t from-ui-bg/50 via-transparent to-transparent p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-        <span
-          v-if="typeBadge"
-          class="rounded-full bg-ui-bg/80 px-3 py-1 text-sm font-semibold backdrop-blur-sm"
-          :class="ext === 'gif' || ext === 'webp' ? 'text-primary' : 'text-tx-main'"
-        >
-          {{ typeBadge }}
-        </span>
+        <Badge v-if="typeBadge" variant="overlay" size="md">
+          <ThemeIcon
+            v-if="'icon' in typeBadge"
+            :name="typeBadge.icon"
+            type="symbol"
+            :size="16"
+            :alt="t('components.mediaCard.video')"
+          />
+          <template v-else>{{ typeBadge.text }}</template>
+        </Badge>
       </div>
 
       <!-- Indicador GIF/WebP animado (siempre visible, no solo en hover) -->
-      <div
-        v-if="isAnimated"
-        class="absolute left-2 top-2 rounded border border-primary/40 bg-ui-bg/70 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur-sm"
-      >
+      <Badge v-if="isAnimated" variant="overlay" class="absolute left-2 top-2 uppercase">
         {{ ext }}
-      </div>
+      </Badge>
 
       <!-- Error badge -->
       <div v-if="isError" class="absolute inset-0 flex items-center justify-center bg-ui-bg/60">
-        <span class="rounded-full border border-ui-border bg-ui-surface px-3 py-1 text-xs text-tx-muted">
-          {{ t('components.mediaCard.loadError') }}
-        </span>
+        <Badge>{{ t('components.mediaCard.loadError') }}</Badge>
       </div>
 
       <!-- Skeleton -->
-      <div v-if="!isLoaded && !isError" class="absolute inset-0 animate-pulse bg-ui-surface/40" />
+      <Skeleton v-if="!isLoaded && !isError" shape="block" width="100%" height="100%" class="absolute inset-0" />
     </div>
 
     <!-- Metadata -->

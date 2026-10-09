@@ -17,6 +17,7 @@ views:
     filterAll: Todo
     filterImages: Imágenes
     filterVideos: Videos
+    timeline: Línea de tiempo
 
 components:
   contextMenu:
@@ -48,6 +49,7 @@ components:
     itemCount: '{0} elementos'
   mediaCard:
     loadError: Error al cargar
+    video: Video
   lightbox:
     label: Viendo {0}
     close: Cerrar
@@ -58,6 +60,8 @@ components:
     pause: Pausar
     mute: Silenciar
     unmute: Activar sonido
+    seek: Posición del video
+    volume: Volumen
     videoUnsupported: El WebView no puede reproducir este video
     openWithSystem: Abrir con reproductor del sistema
     videoErrors:

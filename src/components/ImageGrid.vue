@@ -2,9 +2,14 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useI18n } from '@vasakgroup/tauri-plugin-i18n';
-import { AlertMessage, EmptyState, LoadingState } from '@vasakgroup/vue-libvasak';
+import {
+	ActionButton,
+	AlertMessage,
+	EmptyState,
+	LoadingState,
+	SectionHeading,
+} from '@vasakgroup/vue-libvasak';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import AppButton from '@/components/ui/AppButton.vue';
 import MediaCard from '@/components/ui/MediaCard.vue';
 import { useGalleryContextMenu } from '@/composables/useGalleryContextMenu';
 import { useMonthLabels } from '@/composables/useMonthLabels';
@@ -229,7 +234,11 @@ defineExpose({ loadImages, scanMedia, filterByType, sortBy, scrollToMonth });
 </script>
 
 <template>
-  <div class="block min-h-full" @contextmenu="handleContextMenu">
+  <div class="@container block min-h-full" @contextmenu="handleContextMenu">
+    <!-- `@container`: el relleno de la grilla depende del ancho que le den a
+         la galería, no del de la pantalla (en WebKitGTK `matchMedia` no
+         avisa). El comentario va adentro: arriba de la raíz la volvería un
+         fragmento. -->
     <LoadingState v-if="isLoading" :label="t('components.imageGrid.loading')" />
 
     <!-- El aviso pone el color y el rol; lo que lo centra en el hueco de la
@@ -237,15 +246,13 @@ defineExpose({ loadImages, scanMedia, filterByType, sortBy, scrollToMonth });
          dentro de una sección y no sabe nada de dónde lo pongan. -->
     <div v-else-if="error" class="flex min-h-64 flex-col items-center justify-center gap-4 p-8">
       <AlertMessage tone="error" icon="dialog-error">{{ error }}</AlertMessage>
-      <AppButton @click="loadImages()">{{ t('common.retry') }}</AppButton>
+      <ActionButton variant="secondary" :label="t('common.retry')" @click="loadImages()" />
     </div>
 
     <LoadingState v-else-if="isScanning && images.length === 0" :label="scanningMessage" />
 
     <EmptyState v-else-if="images.length === 0" :title="t('components.imageGrid.empty')" icon="photo">
-      <AppButton v-if="!isScanning" variant="primary" @click="scanMedia">
-        {{ t('components.imageGrid.scanNow') }}
-      </AppButton>
+      <ActionButton v-if="!isScanning" :label="t('components.imageGrid.scanNow')" @click="scanMedia" />
     </EmptyState>
 
     <template v-else>
@@ -255,18 +262,19 @@ defineExpose({ loadImages, scanMedia, filterByType, sortBy, scrollToMonth });
         :id="`month-${group.key}`"
         class="scroll-mt-2"
       >
-        <!-- Month header -->
-        <div class="sticky top-0 z-10 flex items-center gap-3 bg-ui-bg/80 rounded-corner px-3 py-2 backdrop-blur-md">
-          <span class="h-px flex-1 bg-ui-border" />
-          <h2 class="text-xs font-semibold uppercase tracking-widest text-tx-muted">{{ group.label }}</h2>
-          <span class="rounded-full border border-ui-border bg-ui-surface px-2 py-0.5 text-xs text-tx-muted">
-            {{ group.items.length }}
-          </span>
-          <span class="h-px flex-1 bg-ui-border" />
-        </div>
+        <!-- Cabecera del mes: pegada arriba y opaca, sin desenfoque (lo que
+             pasa por debajo no se ve a través del fondo de la ventana). -->
+        <SectionHeading
+          class="rounded-corner-m px-3"
+          as="h2"
+          sticky
+          divider
+          :title="group.label"
+          :count="group.items.length"
+        />
 
         <!-- Grid -->
-        <div class="grid gap-2 p-2 sm:p-3" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))">
+        <div class="grid gap-2 p-2 @min-[40rem]:p-3" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))">
           <MediaCard
             v-for="item in group.items"
             :key="item.id"
