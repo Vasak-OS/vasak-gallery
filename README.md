@@ -1,100 +1,184 @@
-# Vasak Gallery
+# Vasak gallery
 
-Una galería de medios de escritorio construida con **Tauri v2**, **Vue 3** y **TypeScript**, diseñada para integrarse con el ecosistema **VasakOS**.
-
-![Vasak Gallery](src-tauri/icons/icon.png)
+Aplicación de galería para VasakOS, en esta aplicación podrás ver y revisar todas las imágenes del sistema de una forma simple
 
 ---
 
-## Características
+## Tecnología
 
-### Galería
-- **Escaneo automático** de directorios del sistema (`~/Pictures`, `~/Videos`, `~/Downloads`) al iniciar
-- **Grilla adaptativa** con miniaturas generadas localmente y almacenadas en caché (`~/.cache/vasak-gallery/thumbnails/`)
-- **Agrupación por mes** — las imágenes se organizan automáticamente por fecha de creación
-- **Filtros** por tipo de media: todo, solo imágenes, solo videos
-- **Paginación** con carga incremental ("Cargar más")
+[![Rust](https://img.shields.io/badge/Rust-1.82%2B-orange?style=flat&logo=rust)](https://www.rust-lang.org/) [![Tauri](https://img.shields.io/badge/Tauri-2.0-24283b?style=flat&logo=tauri)](https://tauri.app/) [![Vue](https://img.shields.io/badge/Vue-3.5-42b883?style=flat&logo=vue.js)](https://vuejs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 
-### Línea de tiempo (Timeline)
-- **Barra lateral colapsable** que muestra todos los años y meses con contenido
-- Navegación instantánea: al hacer clic en un mes, el grid hace scroll suave hasta ese grupo
-- Indicador visual del mes activo
-- Se expande al pasar el cursor para mostrar etiquetas y conteos
+## Estado
 
-### Lightbox
-- **Visor de imágenes** con zoom (rueda del ratón, 0.5×–8×) y pan (click + arrastre)
-- Doble clic para resetear el zoom
-- Indicador de porcentaje de zoom
-- **Reproductor de video** con controles personalizados al estilo VasakOS:
-  - Barra de progreso con seek
-  - Play/Pause, Mute, control de volumen
-  - Auto-hide de controles durante reproducción
-  - Fallback a reproductor del sistema (`xdg-open`) si el WebView no soporta el codec
-- **Navegación entre archivos** con botones ← → o teclas de flecha
-- Contador de posición (N / Total)
-- Cierre con `Escape` o clic en el fondo
-
-### Teclado
-| Tecla | Acción |
-|-------|--------|
-| `Esc` | Cerrar lightbox |
-| `←` `→` | Navegar entre imágenes |
-| `Space` | Play/Pause (video) |
-| `+` / `-` | Zoom in/out (imagen) |
-| `0` | Resetear zoom |
+[![CI](https://github.com/Vasak-OS/vasak-gallery/actions/workflows/ci.yml/badge.svg)](https://github.com/Vasak-OS/vasak-gallery/actions/workflows/ci.yml)
+[![Versión](https://img.shields.io/github/v/release/Vasak-OS/vasak-gallery?style=flat&label=Versi%C3%B3n)](https://github.com/Vasak-OS/vasak-gallery/releases)
+[![Licencia](https://img.shields.io/github/license/Vasak-OS/vasak-gallery?style=flat)](LICENSE)
+[![Cobertura](https://sonarcloud.io/api/project_badges/measure?project=Vasak-OS_vasak-gallery&metric=coverage&style=flat)](https://sonarcloud.io/summary/new_code?id=Vasak-OS_vasak-gallery)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Vasak-OS_vasak-gallery&metric=alert_status&style=flat)](https://sonarcloud.io/summary/new_code?id=Vasak-OS_vasak-gallery)
+[![Tamaño repo](https://img.shields.io/github/repo-size/Vasak-OS/vasak-gallery?style=flat)](https://github.com/Vasak-OS/vasak-gallery)
 
 ---
 
-## Stack técnico
+## Descripción
 
-| Capa | Tecnología |
-|------|-----------|
-| Shell | [Tauri v2](https://tauri.app) |
-| Frontend | [Vue 3](https://vuejs.org) + [TypeScript](https://www.typescriptlang.org) |
-| Estilos | [Tailwind CSS v4](https://tailwindcss.com) |
-| Build | [Vite](https://vitejs.dev) + [Bun](https://bun.sh) |
-| Backend | Rust (indexador, thumbnails, SQLite) |
-| Base de datos | SQLite via `rusqlite` |
-| Thumbnails | `image-rs` |
+Aplicación de galería para VasakOS, en esta aplicación podrás ver y revisar todas las imágenes del sistema de una forma simple
+
+**Para el usuario:** Aplicación de galería para VasakOS, en esta aplicación podrás ver y revisar todas las imágenes del sistema de una forma simple
+
+**Integración VasakOS:** Integra con el ecosistema VasakOS vía D-Bus y configuración compartida.
 
 ---
 
-## Estructura del proyecto
+## Arquitectura (diagramas)
+
+> Copia y pega la plantilla que necesites, descomenta y adapta.
+
+### Flujo de datos
+
+```mermaid
+<!--
+graph TD
+    A[Entrada: Teclado / Ratón / D-Bus / Sistema] --> B[Procesamiento: Core Rust + Tauri Commands]
+    B --> C[Salida: UI actualizada / Acciones del sistema]
+    style A fill:#e1f5fe
+    style C fill:#e8f5e9
+-->
+```
+
+### Componentes internos
+
+```mermaid
+<!--
+flowchart LR
+    subgraph App[Vasak gallery]
+        UI[Frontend Vue 3 + vue-libvasak]
+        Core[Core Rust: lógica principal]
+        IPC[Tauri Commands / Eventos]
+        System[Systemd / D-Bus / PipeWire / Wayland]
+    end
+    UI --> IPC
+    IPC --> Core
+    Core --> DBus[(D-Bus / zbus)]
+    Core --> System
+    style UI fill:#f3e5f5
+    style Core fill:#e3f2fd
+    style DBus fill:#fff3e0
+    style System fill:#fce4ec
+-->
+```
+
+### Integración en el sistema VasakOS
+
+```mermaid
+<!--
+C4Context
+    title Vasak gallery en VasakOS
+    Person(usuario, "Usuario", "Persona que usa el sistema")
+    System_Boundary(c1, "VasakOS") {
+        System(app, "Vasak gallery", "Aplicación de galería para VasakOS, en esta aplicación podrás ver y revisar ")
+        System_Ext(settings, "vasak-settings", "Configuración central")
+        System_Ext(keyring, "vasak-keyring", "Secrets y claves")
+        System_Ext(accounts, "vasak-accounts", "Cuentas e identidad")
+        System_Ext(permissions, "vasak-permissions", "Permisos y portales")
+    }
+    System_Ext(systemd, "systemd", "Gestión de servicios")
+    System_Ext(dbus, "D-Bus", "Bus de mensajes del sistema")
+    System_Ext(wayland, "Wayland / Wayfire", "Compositor")
+    System_Ext(pipewire, "PipeWire", "Multimedia")
+    Rel(usuario, app, "Usa")
+    Rel(app, settings, "Lee/escribe config")
+    Rel(app, keyring, "Guarda/lee secrets")
+    Rel(app, accounts, "Identidad de cuenta")
+    Rel(app, permissions, "Solicita permisos")
+    Rel(app, systemd, "Activación / sockets")
+    Rel(app, dbus, "Expone / consume interfaces")
+    Rel(app, wayland, "Superficies / protocolos")
+    Rel(app, pipewire, "Streams de audio/video")
+-->
+```
+
+---
+
+## Instalación
+
+### Arch Linux (repo oficial)
+
+```bash
+pacman -S vasak-vasak-gallery
+```
+
+### Debian / Ubuntu (.deb)
+
+```bash
+wget https://github.com/Vasak-OS/vasak-gallery/releases/download/v{{VERSION}}/vasak-vasak-gallery_{{VERSION}}_amd64.deb
+sudo apt install ./vasak-vasak-gallery_{{VERSION}}_amd64.deb
+```
+
+### Desde fuente
+
+```bash
+git clone https://github.com/Vasak-OS/vasak-gallery.git
+cd vasak-gallery
+
+# Desarrollo (recarga en caliente frontend + backend)
+bun run dev
+
+# Build producción
+bun run build
+
+# Solo frontend
+bun run build:frontend
+
+# Solo backend Rust
+cargo build --release --locked
+```
+
+### Flatpak / AppImage
+
+> *Placeholder: añadir cuando exista paquete Flatpak o AppImage oficial.*
+
+---
+
+## Uso rápido
+
+```bash
+# Se lanza automáticamente (systemd --user) o manualmente:
+vasak-gallery
+```
+
+### Atajos / flags principales
+
+| Acción | Comando / Tecla |
+|--------|-----------------|
+| Acción principal | `vasak-gallery` |
+| Configuración | `vasak-gallery --config` |
+| Ayuda | `vasak-gallery --help` |
+
+> **Captura:** `assets/demo.gif` *(placeholder — sustituir por GIF real)*
+
+---
+
+## Configuración
+
+### Archivo de configuración
 
 ```
-vasak-gallery/
-├── src/                        # Frontend Vue
-│   ├── components/
-│   │   ├── ImageGrid.vue       # Grilla principal con agrupación por mes
-│   │   ├── Lightbox.vue        # Visor fullscreen con zoom y video player
-│   │   ├── TimelineSidebar.vue # Barra lateral de navegación temporal
-│   │   ├── FullscreenViewer.vue
-│   │   └── topbar/
-│   ├── composables/
-│   │   ├── useGalleryContextMenu.ts # Qué ofrece el clic derecho
-│   │   ├── useMediaActions.ts  # Copiar, abrir, poner como fondo
-│   │   ├── useMonthLabels.ts   # Nombres de mes traducidos
-│   │   ├── useNotification.ts  # Avisos breves de resultado
-│   │   └── useReactiveIcon.ts
-│   ├── layouts/
-│   │   └── WindowAppLayout.vue
-│   ├── types/
-│   │   └── gallery.ts          # Todos los tipos TypeScript
-│   └── views/
-│       └── GalleryView.vue
-│
-└── src-tauri/                  # Backend Rust
-    ├── locales/                # Traducciones (es, en)
-    │   ├── es.yml
-    │   └── en.yml
-    └── src/
-        ├── clipboard.rs        # Portapapeles del sistema vía GTK
-        └── indexer/
-            ├── scanner.rs      # Escaneo de directorios
-            ├── thumbnail.rs    # Generación de miniaturas
-            ├── database.rs     # SQLite (rusqlite)
-            └── commands.rs     # Comandos Tauri expuestos al frontend
+~/.config/vasak/vasak-gallery.toml
 ```
+
+### Variables de entorno
+
+| Variable | Descripción | Por defecto |
+|----------|-------------|-------------|
+| `VASAK_DEBUG` | Activa logs de depuración en consola | `false` |
+| `VASAK_PROFILE` | Perfil de rendimiento: `balanced`, `performance`, `power-save` | `balanced` |
+
+### Integración con `tauri-plugin-config-manager`
+
+- Esquemas de color: respeta `--ui-primary`, `--ui-surface`, `--ui-focus`, `--ui-on-surface`, `--ui-border`
+- Tema de iconos: usa el tema del sistema (`vasakos-icon-theme`) vía `vicon` lookup
+- Radio de bordes: variable CSS `--ui-radius` del esquema activo (por defecto 12px)
+- Fuentes: `--ui-font-family`, `--ui-font-size-base` desde el esquema
 
 ---
 
@@ -102,53 +186,185 @@ vasak-gallery/
 
 ### Requisitos
 
-- [Rust](https://rustup.rs) (stable)
-- [Bun](https://bun.sh)
-- [Tauri CLI v2](https://tauri.app/start/prerequisites/)
-- En Linux: `webkit2gtk-4.1`, `libsoup-3.0`, `libcairo2`, `libgtk-3`
+- **Rust:** `rustup` toolchain estable (`rust-toolchain.toml` fija la versión)
+- **Node / bun:** `bun` ≥ 1.1 (nunca npm/yarn/pnpm para apps Tauri)
+- **Sistema:** `pkg-config`, `libgtk-3-dev`, `libwebkit2gtk-4.1-dev`, `libssl-dev`
+- *`libgtk-layer-shell-dev`, `wayland-protocols`, `wayfire-dev` para Wayland*
 
-### Instalación
+### Dependencias de desarrollo
+
+#### Sistema (paquetes Arch / Debian / Fedora)
+
+`base-devel`, `pkgconf`, `libssl-dev`, `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`, `gstreamer1.0-plugins-base`, `gstreamer1.0-plugins-good`, `libpipewire-0.3-dev`, `libwireplumber-0.5-dev`, `libdbus-1-dev`, `libudev-dev`, `libxkbcommon-dev`, `libwayland-dev`, `meson`, `ninja`, `clang`, `lld`
+
+#### Rust
+
+`rustup` → `stable` + `rustfmt` + `clippy`
+
+#### Node
+
+**Solo `bun`** (nunca npm/yarn/pnpm para apps Tauri). `bun --version` ≥ 1.1
+
+#### Herramientas CLI
+
+`just` (command runner), `cargo-binstall` (opcional), `cargo-llvm-cov` (para cobertura)
+
+### Correr la app en desarrollo
 
 ```bash
-bun install
-```
-
-### Desarrollo
-
-```bash
+# Frontend (Vite dev server + Tauri dev)
 bun run tauri dev
+
+# Solo frontend (Vite)
+bun run dev
+
+# Solo backend (cargo watch)
+cargo watch -x "run --bin vasak-gallery"
 ```
 
-### Build
+### Compilar / Build de release
 
 ```bash
+# Build completo (frontend + backend + bundle)
 bun run tauri build
+
+# Solo frontend (para testear bundle después)
+bun run build
+
+# Solo backend Rust (binario optimizado)
+cargo build --release --locked
+
+# Paquetes nativos
+# Arch: makepkg -sf en PKGBUILDS/vasak-gallery/
+# Debian: cargo deb --no-build --target-dir src-tauri/target/release/debian
 ```
 
----
+### Targets principales
 
-## Caché
-
-Los thumbnails se almacenan en:
-```
-~/.cache/vasak-gallery/thumbnails/
-```
-
-Para limpiar la caché desde la app, usar el comando `clear_cache` (disponible vía Tauri invoke).
-
----
-
-## Reproducción de video en Linux
-
-El WebView de Tauri usa **WebKit2GTK**, que en algunas distribuciones no incluye soporte H.264/MP4 por restricciones de licencias. Si un video no se puede reproducir en el visor integrado, aparece automáticamente un botón para abrirlo con el reproductor predeterminado del sistema (`xdg-open`).
-
-Para habilitar reproducción nativa en Arch Linux, asegurarse de tener instalados:
 ```bash
-sudo pacman -S gst-libav gst-plugins-ugly gst-plugins-bad
+# Desarrollo (Tauri dev server + hot reload)
+bun run dev
+
+# Build producción
+bun run build
+
+# Solo frontend
+bun run build:frontend
+
+# Solo backend Rust
+cargo build --release --locked
+
+# Lint + tipos (pre-commit / CI)
+bunx --bun biome check .
+bunx vue-tsc --noEmit
+cargo fmt --check
 ```
+
+### Pruebas
+
+```bash
+# Suite completa JS (Vitest via bun:test)
+bun test
+
+# Suite completa Rust (crates en pruebas_rust del CI)
+cargo test -p vasak-gallery-core -p vasak-gallery-ui --locked
+
+# Integración (requiere Wayfire corriendo)
+cargo test -p vasak-gallery-integration --locked -- --ignored
+```
+
+### Convención de commits
+
+[Conventional Commits](https://www.conventionalcommits.org/es/v1.0.0/):
+
+```
+<tipo>(<ámbito>): <descripción corta>
+
+[cuerpo opcional]
+
+[pie opcional: Closes #N]
+```
+
+Tipos habituales: `feat`, `fix`, `bugfix`, `docs`, `ci`, `chore`, `security`, `refactor`, `perf`, `test`.
+
+### Cómo abrir PR
+
+1. Rama desde `origin/main`:
+   ```bash
+   git worktree add -b feat/tema ~/wt/vasak-gallery-tema origin/main
+   ```
+2. Prefijos de rama: `fix/`, `feat/`, `bugfix/`, `docs/`, `ci/`, `chore/`, `security/`
+3. Escribe el fix → **`qa` escribe las pruebas** (fallan sin el fix) → suite verde → abre PR
+4. Al abrir PR, **cuatro cosas obligatorias**:
+   - Asignado a `JoaquinDecima`
+   - Etiqueta `enhancement` o `bug` (+ `ci` / `dependencies` si aplica)
+   - Añadido al proyecto «VasakOS Roadmap»
+   - Status **In Progress**
+
+---
+
+## Arquitectura (texto)
+
+### Crates / módulos principales
+
+| `vasak-gallery-core` | Lógica compartida: estado, D-Bus, IPC |
+| `vasak-gallery-ui` | Frontend Vue 3 + componentes vue-libvasak |
+| `vasak-gallery-tauri` | Puente Tauri: commands, eventos, WebView |
+
+### Interfaces D-Bus / zbus expuestas
+
+| `org.vasak.Vasak-gallery` | `GetState()`, `StateChanged(dict)`, `SetConfig(dict)` | Estado y control principal |
+| `org.vasak.Vasak-gallery.Panel` | `SetPosition(string)`, `SetAutohide(bool)`, `Height(u32)` | Configuración panel en runtime |
+
+### Puntos de extensión
+
+- **Plugins:** Sistema de plugins modular
+- **Hooks:** Hooks de ciclo de vida
+- **API pública Rust:** API pública del crate principal
+
+### Features / Cargo features
+
+| Feature | Descripción | Default |
+|---------|-------------|---------|
+| `system-tray` | Bandeja del sistema + menú contextual | ✓ |
+| `notifications` | Integración libnotify / freedesktop | ✓ |
+| `updater` | Auto-actualización (tauri-plugin-updater) | |
+| `devtools` | DevTools en release (solo debug) | |
+| `experimental-wayland` | Protocolo Wayland inestable | |
+
+Y para apps Tauri+Vue: features del `tauri.conf.json` → `bundle` / `plugins` / `allowlist` (capabilities).
+
+---
+
+## Pruebas y calidad
+
+- **Cobertura objetivo:** ≥ 80 % del código nuevo (SonarCloud Quality Gate)
+- **Informes:** GitHub Actions → pestaña *SonarCloud Code Analysis* → enlace a SonarCloud
+- **Añadir pruebas:** ver `AGENTS.md` sección 9 (mapa de repos y comandos de prueba)
+- **Regla:** toda corrección lleva prueba escrita por `qa` que falla sin el fix
+
+---
+
+## Contribuir
+
+- **Guía:** [.github/CONTRIBUTING.md](https://github.com/Vasak-OS/.github/blob/main/CONTRIBUTING.md)
+- **Plantillas de issue:** [.github/ISSUE_TEMPLATE/](https://github.com/Vasak-OS/.github/tree/main/ISSUE_TEMPLATE)
+- **Código de conducta:** [CODE_OF_CONDUCT.md](https://github.com/Vasak-OS/.github/blob/main/CODE_OF_CONDUCT.md)
+
+---
+
+## Donadores / Sponsors
+
+[![Sponsors](https://img.shields.io/github/sponsors/Vasak-OS?style=flat&label=Sponsors)](https://github.com/sponsors/Vasak-OS)
+
+> **Backers:** *Actualizado automáticamente en CI desde GitHub Sponsors / OpenCollective / Polar.*
+
+[💖 Donar al proyecto](https://github.com/sponsors/Vasak-OS)
 
 ---
 
 ## Licencia
 
-Ver [LICENSE](LICENSE).
+`GPL-3.0` — Copyright © 2026 **Vasak-OS Contributors**
+
+[Ver licencia completa](LICENSE)
