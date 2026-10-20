@@ -82,12 +82,14 @@ pub fn run() {
             crate::indexer::commands::clear_cache,
             crate::clipboard::clipboard_copy_text,
             crate::clipboard::clipboard_copy_image,
+            crate::commands::webkit::tune_webview,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 pub mod clipboard;
+pub mod commands;
 pub mod indexer;
 
 #[cfg(test)]
