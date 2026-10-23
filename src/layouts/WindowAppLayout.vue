@@ -6,6 +6,7 @@ import { ThemeIcon, ToastArea, WindowFrame } from '@vasakgroup/vue-libvasak';
 import { nextTick, onMounted, onUnmounted, type Ref, ref } from 'vue';
 import { RouterView } from 'vue-router';
 import { useNotification } from '@/composables/useNotification';
+import { saveTheme } from '@/tools/theme-cache';
 
 const { t } = useI18n();
 
@@ -19,7 +20,7 @@ onMounted(async () => {
 	const configStore = useConfigStore();
 
 	try {
-		await configStore.loadConfig();
+		await configStore.loadConfig().then(() => saveTheme());
 	} catch (error: any) {
 		console.error('Error al cargar configuración en WindowAppLayout.vue', error);
 	}
@@ -31,7 +32,7 @@ onMounted(async () => {
 	try {
 		unListenConfig.value = await listen('config-changed', async () => {
 			document.startViewTransition(() => {
-				configStore.loadConfig();
+				configStore.loadConfig().then(() => saveTheme());
 			});
 		});
 	} catch (error: any) {
